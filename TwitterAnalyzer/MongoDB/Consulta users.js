@@ -16,3 +16,5 @@ db.users.aggregate([
      }
    }
   ])
+  
+ db.users.find({user_age:1}) 
