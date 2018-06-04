@@ -5,6 +5,7 @@ import Helpers.Stats as stats
 
 age = 1
 consulta = DataAccess.Twitters.getUsersByAge(age)
+
 x = [row['user_statuses_count'] for row in consulta]
 
 media = stats.mean(x)
