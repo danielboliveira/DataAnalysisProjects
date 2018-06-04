@@ -16,9 +16,14 @@ db = client["TwitterSearch"]
 twitters = db['twitters']
 wordsSummary = db['wordsSummary']
 
+def getUsersByAge(age):
+    return  db['users'].find({'user_age':1}) 
+    
+
 def updateTwittersUserAnalyzed(listUser):
     for u in listUser:
         twitters.update_many({'user.id':u['id']},{'$set':{'fl_user_processed':True}})
+
 def getUsersForAnalyzer():
     return db['twittersUserIDs'].find()
 
