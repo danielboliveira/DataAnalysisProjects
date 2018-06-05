@@ -3,10 +3,13 @@ import Helpers.Stats as stats
 
 
 
-age = 1
-consulta = DataAccess.Twitters.getUsersByAge(age)
+age_start = 0
+age_end = 1
 
-x = [row['user_statuses_count'] for row in consulta]
+consulta = DataAccess.Twitters.getUsersByAge(age_start,age_end)
+
+x   = [row['user_statuses_count'] for row in consulta]
+ids = [row['ids'] for row in consulta]
 
 media = stats.mean(x)
 mediana = stats.median(x)
@@ -19,7 +22,7 @@ dispersao = stats.data_range(x)
 desvio_padrao = stats.standard_deviation(x)
 diff_quantile_75_95 = stats.interquartile_range(x)
 
-print('Idade em meses',age)
+print('Idade em meses de {0} a {1}'.format(age_start,age_end))
 print('Total de usuários:',len(x))
 print('Medições de interações em posts')
 print('media:',media)
@@ -32,3 +35,6 @@ print('Quantil Diff 75% e 95%:',diff_quantile_75_95)
 print('Moda:',moda)
 print('Dispersão:',dispersao)
 print('Desvio padrão:',desvio_padrao)
+
+print('\nO 10% mais:')
+

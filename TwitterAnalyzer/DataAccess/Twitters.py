@@ -16,8 +16,8 @@ db = client["TwitterSearch"]
 twitters = db['twitters']
 wordsSummary = db['wordsSummary']
 
-def getUsersByAge(age):
-    return  db['users'].find({'user_age':1}) 
+def getUsersByAge(start,end):
+    return  db['users'].find({'$and':[{'user_age':{'$gte':start}},{'user_age':{'$lte':end}}]}) 
     
 
 def updateTwittersUserAnalyzed(listUser):
