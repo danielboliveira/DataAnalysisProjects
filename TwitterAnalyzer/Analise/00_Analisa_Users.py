@@ -3,8 +3,8 @@ import Helpers.Stats as stats
 
 
 
-age_start = 0
-age_end = 1
+age_start = 13
+age_end = 10000
 
 consulta = DataAccess.Twitters.getUsersByAge(age_start,age_end)
 
