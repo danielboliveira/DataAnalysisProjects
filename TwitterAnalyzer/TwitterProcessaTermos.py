@@ -4,7 +4,7 @@ import datetime
 from bson.objectid import ObjectId
 
 twitters = DataAccess.Twitters.twitters
-search = 'bolsonaro'
+search = 'lula'
 reprocess = False
 
 if (reprocess):
