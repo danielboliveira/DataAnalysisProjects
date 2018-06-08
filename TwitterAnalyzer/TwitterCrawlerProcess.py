@@ -58,6 +58,7 @@ def PersisteInMongoDB(lstData):
            entidades.append(e.string.strip())
            
       data['entidades'] = entidades  
+      data['fl_sql_migrated'] = False
       DataAccess.Twitters.insertPost(data)
 
 def processFiles():
