@@ -1,14 +1,63 @@
-08-06-2018 21:26:15-Inicio do processo08-06-2018 21:26:15-Processo finalizado08-06-2018 21:26:51-Inicio do processo08-06-2018 21:26:51-Processo finalizado08-06-2018 21:27:03-Inicio do processo08-06-2018 21:27:03-Processo finalizado08-06-2018 21:27:25-Inicio do processo08-06-2018 21:28:37-Processo finalizado08-06-2018 21:28:47-Inicio do processo08-06-2018 21:29:25-Processo finalizado08-06-2018 21:31:28-Inicio do processo08-06-2018 21:31:28-Processo finalizado08-06-2018 21:32:56-Inicio do processo
-08-06-2018 21:32:56-Erro:<class 'pyodbc.ProgrammingError'>
-08-06-2018 21:32:56-Processo finalizado
-08-06-2018 21:33:43-Inicio do processo
-08-06-2018 21:34:14-Erro:<class 'pyodbc.ProgrammingError'>
-08-06-2018 21:34:14-Processo finalizado
-08-06-2018 21:35:39-Inicio do processo
-08-06-2018 21:35:39-Erro:('The SQL contains 8 parameter markers, but 7 parameters were supplied', 'HY000')
-08-06-2018 21:35:39-Processo finalizado
-08-06-2018 21:35:52-Inicio do processo
-08-06-2018 21:35:52-Erro:('The SQL contains 8 parameter markers, but 7 parameters were supplied', 'HY000')
-08-06-2018 21:35:52-Processo finalizado
-08-06-2018 21:36:12-Inicio do processo
-08-06-2018 21:36:12-Processo finalizado
+08-06-2018 21:45:16-Inicio do processo
+08-06-2018 21:45:16-Erro:('42S22', "[42S22] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'twiter_id'. (207) (SQLExecDirectW)")
+08-06-2018 21:45:16-Processo finalizado
+08-06-2018 21:46:12-Inicio do processo
+08-06-2018 21:46:12-Erro:('42S22', "[42S22] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Invalid column name 'twiter_id'. (207) (SQLExecDirectW)")
+08-06-2018 21:46:12-Processo finalizado
+08-06-2018 21:46:25-Inicio do processo
+08-06-2018 21:46:25-Processo finalizado
+08-06-2018 21:47:11-Inicio do processo
+08-06-2018 21:47:11-Processo finalizado
+09-06-2018 08:54:51-Inicio do processo
+09-06-2018 08:54:51-Processo finalizado
+09-06-2018 09:05:34-Inicio do processo
+09-06-2018 09:05:34-Erro:('The SQL contains 3 parameter markers, but 4 parameters were supplied', 'HY000')
+09-06-2018 09:05:34-Processo finalizado
+09-06-2018 09:05:47-Inicio do processo
+09-06-2018 09:05:47-Processo finalizado
+09-06-2018 09:07:00-
+########### Inicio do processo ###########
+
+09-06-2018 09:07:00-
+######## Processo finalizado #######
+
+09-06-2018 09:35:32-
+########### Inicio do processo ###########
+
+09-06-2018 09:35:32-Erro:'withheld_in_countries'
+09-06-2018 09:35:32-
+######## Processo finalizado #######
+
+09-06-2018 09:37:47-########### Inicio do processo ###########
+
+09-06-2018 09:37:47-Erro:local variable 'withheld_in_countries' referenced before assignment
+09-06-2018 09:37:47-######## Processo finalizado #######
+
+09-06-2018 09:38:21-########### Inicio do processo ###########
+
+09-06-2018 09:38:21-Erro:('22007', '[22007] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting date and/or time from character string. (241) (SQLExecDirectW)')
+09-06-2018 09:38:21-######## Processo finalizado #######
+
+09-06-2018 09:39:02-########### Inicio do processo ###########
+
+09-06-2018 09:39:02-######## Processo finalizado #######
+
+09-06-2018 09:40:53-########### Inicio do processo ###########
+
+09-06-2018 09:40:53-######## Processo finalizado #######
+
+09-06-2018 10:08:14-########### Inicio do processo ###########
+
+09-06-2018 10:08:14-Erro:('42000', "[42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Incorrect syntax near '*'. (102) (SQLExecDirectW)")
+09-06-2018 10:08:14-######## Processo finalizado #######
+
+09-06-2018 10:08:30-########### Inicio do processo ###########
+
+09-06-2018 10:08:30-Erro:('The SQL contains 25 parameter markers, but 23 parameters were supplied', 'HY000')
+09-06-2018 10:08:30-######## Processo finalizado #######
+
+09-06-2018 10:10:10-########### Inicio do processo ###########
+
+09-06-2018 10:10:10-Erro:('22018', '[22018] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Conversion failed when converting the nvarchar value \'<a href="http://instagram.com" rel="nofollow">Instagram</a>\' to data type bit. (245) (SQLExecDirectW)')
+09-06-2018 10:10:10-######## Processo finalizado #######
+
