@@ -1,0 +1,14 @@
+08-06-2018 21:26:15-Inicio do processo08-06-2018 21:26:15-Processo finalizado08-06-2018 21:26:51-Inicio do processo08-06-2018 21:26:51-Processo finalizado08-06-2018 21:27:03-Inicio do processo08-06-2018 21:27:03-Processo finalizado08-06-2018 21:27:25-Inicio do processo08-06-2018 21:28:37-Processo finalizado08-06-2018 21:28:47-Inicio do processo08-06-2018 21:29:25-Processo finalizado08-06-2018 21:31:28-Inicio do processo08-06-2018 21:31:28-Processo finalizado08-06-2018 21:32:56-Inicio do processo
+08-06-2018 21:32:56-Erro:<class 'pyodbc.ProgrammingError'>
+08-06-2018 21:32:56-Processo finalizado
+08-06-2018 21:33:43-Inicio do processo
+08-06-2018 21:34:14-Erro:<class 'pyodbc.ProgrammingError'>
+08-06-2018 21:34:14-Processo finalizado
+08-06-2018 21:35:39-Inicio do processo
+08-06-2018 21:35:39-Erro:('The SQL contains 8 parameter markers, but 7 parameters were supplied', 'HY000')
+08-06-2018 21:35:39-Processo finalizado
+08-06-2018 21:35:52-Inicio do processo
+08-06-2018 21:35:52-Erro:('The SQL contains 8 parameter markers, but 7 parameters were supplied', 'HY000')
+08-06-2018 21:35:52-Processo finalizado
+08-06-2018 21:36:12-Inicio do processo
+08-06-2018 21:36:12-Processo finalizado

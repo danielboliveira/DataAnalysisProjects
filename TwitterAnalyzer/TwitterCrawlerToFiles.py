@@ -5,10 +5,13 @@
 from datetime import datetime
 from datetime import timedelta
 import string
+import sys
 from twython import TwythonStreamer
 import os
 import pickle
-import sys
+
+
+total = int(sys.argv[1])
 
 def convertTwitterUTCTimeToLocal(valor):
      
@@ -96,10 +99,10 @@ class MyStreamer(TwythonStreamer):
         self.ts.append(data)
         
         self.global_tweets += 1
-        printProgressBar(self.tweets+1,1000,prefix = 'Progress:', suffix = 'Complete',showAndamento=True)
+        printProgressBar(self.tweets+1,total,prefix = 'Progress:', suffix = 'Complete',showAndamento=True)
         self.tweets += 1
                         
-        if self.tweets >= 1000 :
+        if self.tweets >= total :
             print("Salvando arquivo...")
             SafeFile(self.ts)
             self.tweets = 0
@@ -117,12 +120,14 @@ CONSUMER_SECRET = "5KscghsdSOX3BYsVjdME0hsRAdMWHiblrvVcc9cApCKfiO8IQI"
 ACCESS_TOKEN = "52572176-zn9okwAeO0iAX1ZEW6E9YaE8iAn8IVdDYqyXN5lYb"
 ACCESS_TOKEN_SECRET = "EmQuHiuTncRSGy7Wvh5Q0InseGWm45TrxGcH4Q6pLad87"
 
-query = sys.argv[1]
+query = sys.argv[2]
+#query = 'eleições,lula,dilma,bolsonaro,jair bolsonaro,ciro gomes,boulos,manuela d\'avila,manuela davila,stf,sérgio moro,alckmin,henrique meirelles,petrolão,mensalão'
+#itens = query.split(',')
+
 
 stream = MyStreamer(CONSUMER_KEY,CONSUMER_SECRET,ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
 stream.statuses.filter(track=query,lang="pt")
 
-print(sys.argv[1])
 
 print("Finalizado...")
 
