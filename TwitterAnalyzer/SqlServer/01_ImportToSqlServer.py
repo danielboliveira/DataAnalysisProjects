@@ -13,7 +13,8 @@ log = open('import.log', 'a')
 def writeLog(mensagem):
     now = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
     log.write('{0}-{1}\n'.format(now,mensagem))
-
+    log.flush()
+    
 def importPlace(place):
     cmdSelect = 'select count(*) from place where id = ?'
     cmdInsert = 'INSERT INTO [place]'\
@@ -35,6 +36,8 @@ def importPlace(place):
     country = place['country']
     bounding_box = None
     cursor.execute(cmdInsert,id,url,place_type,name,full_name,country_code,country,bounding_box)
+    
+    writeLog('Place - {0} - Tentando commit'.format(place['id']))
     cursor.commit()
     
 def importEntidades(id,ents):
@@ -44,7 +47,8 @@ def importEntidades(id,ents):
     for ent in ents:
         cmdInsert = 'insert into entidade (twitter_id,text) values(?,?)'
         cursor.execute(cmdInsert,id,ent)
-        
+    
+    writeLog('Entidades - {0} - Tentando commit'.format(id))    
     cursor.commit()
 
 def importHashtags(id,hashtags):
@@ -54,6 +58,7 @@ def importHashtags(id,hashtags):
     for hashtag in hashtags:
         cursor.execute('insert into hashtag (twitter_id,text) values(?,?)',id,hashtag['text'])
     
+    writeLog('HashTags - {0} - Tentando commit'.format(id))
     cursor.commit()
 
 def importGeo(id,geo):
@@ -65,6 +70,8 @@ def importGeo(id,geo):
                    geo['coordinates'][0],
                    geo['coordinates'][1],
                    id)
+    
+    writeLog('Geo - {0} - Tentando commit'.format(id))
     cursor.commit()
 
 def importUser(user):
@@ -100,10 +107,10 @@ def importUser(user):
     cursor.execute('delete from [user] where id = ?',id)
     cursor.commit()
     
-    if (len(location) > 200):
+    if (location != None and len(location) > 200):
         location = location[0:200]
     
-    if (len(description) > 8000):
+    if (description != None and len(description) > 8000):
         description = description[0:8000]
         
     cursor.execute('INSERT INTO [user] ([id],[name],[screen_name],[location],[url],[description]'\
@@ -133,6 +140,8 @@ def importUser(user):
                     default_profile 		, 
                     withheld_in_countries 	, 
                     withheld_scope 			)
+    
+    writeLog('user - {0} - Tentando commit'.format(id))
     cursor.commit()
                    
 def importPost(post):
@@ -168,6 +177,7 @@ def importPost(post):
     in_reply_to_screen_name 	=	post['in_reply_to_screen_name']
     user_id						=	post['user']['id']
     
+    place_id = None
     if ('place' in post and post['place'] != None):
         place_id =	post['place']['id']
     
@@ -178,30 +188,59 @@ def importPost(post):
     favorite_count 				=	post['favorite_count']
     favorited 					=	post['favorited']
     retweeted 					=	post['retweeted']
-    possibly_sensitive 			=	post['possibly_sensitive']
-    filter_level 				=	post['filter_level']
-    lang 					 	=	post['lang']
-    negativo 					=	post['negativo']
-    positivo 					=	post['positivo']
-    sentimento 					=	post['sentimento']
+    
+    possibly_sensitive = None
+    if ('possibly_sensitive' in post):
+        possibly_sensitive 			=	post['possibly_sensitive']
+    
+    filter_level = None
+    if ('filter_level' in post):
+        filter_level =	post['filter_level']
+    
+    lang =	post['lang']
+    
+    if ('negativo' in post):
+        negativo =	post['negativo']
+    else:
+        negativo = None
+    
+    if ('positivo' in post):    
+        positivo =	post['positivo']
+    else:
+        positivo = None
+    
+    if ('sentimento' in post):    
+        sentimento 	=	post['sentimento']
+    else:
+        sentimento = None
     
     quoted_status_id = None
-    quoted_status_text = None
-    retweeted_status_id = None
     
+    if ('quoted_status' in post and post['quoted_status'] != None):
+        quoted_status_id = post['quoted_status']['id']
+        importPost(post['quoted_status'])
+    
+    
+    retweeted_status_id = None
+    if ('retweeted_status' in post and post['retweeted_status'] != None):
+        retweeted_status_id = post['retweeted_status']['id']
+        importPost(post['retweeted_status'])
+    
+  
+      
     cursor.execute('INSERT INTO [twitter]'\
            '([created_at],[id],[text],[source],[truncated],[in_reply_to_status_id],[in_reply_to_user_id]'\
-           ',[in_reply_to_screen_name],[user_id],[place_id],[quoted_status_id],[quoted_status_text]'\
+           ',[in_reply_to_screen_name],[user_id],[place_id],[quoted_status_id]'\
            ',[is_quote_status],[retweeted_status_id],[quote_count],[reply_count],[retweet_count]'\
            ',[favorite_count],[favorited],[retweeted],[possibly_sensitive],[filter_level]'\
            ',[lang],[negativo],[positivo],[sentimento])'\
-           ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+           ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
             created_at 					,             id							, 
             text 						,            source 					  	,
             truncated 					,            in_reply_to_status_id 		,
             in_reply_to_user_id 		,            in_reply_to_screen_name 	,
             user_id						,            place_id                    ,	
-            quoted_status_id            ,            quoted_status_text          ,
+            quoted_status_id            ,                      
             is_quote_status 			,            retweeted_status_id,
             quote_count 				,            reply_count 				,
             retweet_count 				,            favorite_count 				,
@@ -210,24 +249,65 @@ def importPost(post):
             lang 					 	,            negativo 					,
             positivo 					,            sentimento)
 
-### Código Principal ####    
+
+### Código Principal ####  
+to_commit = []           
 try:
-    writeLog('########### Inicio do processo ###########\n')
+    writeLog('########### Inicio do processo ###########')
     print('Inicio do processo')
     
-    post = DataAccess.Twitters.twitters.find_one({ "geo" : {'$ne':None} })
+    consulta = DataAccess.Twitters.twitters.find({'fl_sql_migrated' : False })
+    total = consulta.count()
+    index = 0
+
+    Helpers.Utils.printProgressBar(index,total,prefix = 'Progress:', suffix = 'Complete',showAndamento=True)
     
-    importPost(post) 
-    cursor.commit()
+    for post in consulta:
+#        writeLog('Post - {0} - import'.format(post['id']))
+        
+        importPost(post)
+        
+        
+        
+#        try:
+#            writeLog('Post - {0} - commit'.format(post['id']))
+#            cursor.commit()
+#            DataAccess.Twitters.twitters.update_one({'id':post['id']},{"$set":{'fl_sql_migrated':True}},upsert=False)
+#        except:
+#             msg = sys.exc_info()[0]
+#             writeLog('Erro:' + msg)
+        
+        to_commit.append(post['id'])
+        
+        Helpers.Utils.printProgressBar(index,total,prefix = 'Progress:', suffix = 'Complete',showAndamento=True)
+        index += 1
+        
+        if (index == 0 or index % 1000 == 0):
+            try:
+                writeLog('Tentando commit')
+                cursor.commit()
+                writeLog('Commit realizado')
+                
+                for id in to_commit:
+                    DataAccess.Twitters.twitters.update_one({'id':id},{"$set":{'fl_sql_migrated':True}},upsert=False)
+    
+            except Exception as e:
+                msg = 'Erro:{0}'.format(str(e))
+                writeLog(msg)
+            finally:
+                writeLog(",".join([str(i) for i in to_commit]))    
+                to_commit.clear()
     
 except Exception as e:
     msg = 'Erro:{0}'.format(str(e))
     writeLog(msg)
-    print(msg)
+    writeLog(",".join([str(i) for i in to_commit]))  
+    print('\n'+msg)
 finally:
     cursor.commit()
     cursor.close()
     writeLog('######## Processo finalizado #######\n')
-
+    log.flush()
+    log.close()         
 print('Fim do processo')
     
