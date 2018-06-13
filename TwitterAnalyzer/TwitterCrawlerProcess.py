@@ -7,6 +7,7 @@ import DataAccess.Twitters
 import Helpers.Utils
 import spacy
 import re
+from SqlServer import ImportToSqlServer
 
 ftp_host='191.237.254.23'
 ftp_user='admin'
@@ -76,14 +77,27 @@ def processFiles():
          lstData = pickle.load(f)
          PersisteInMongoDB(lstData)
 
-     shutil.move(path_local+file,path_local_processed+file)
+     os.remove(path_local+file)
+#     shutil.move(path_local+file,path_local_processed+file)
      Helpers.Utils.printProgressBar(index+1,total,prefix = 'Progress:', suffix = 'Complete',showAndamento=True)
      index+=1
 
+def PurgerImported():
+    DataAccess.Twitters.deleteImportedToSqlServer()
+    
 print("Iniciando processo de obtenção de arquivos...")
-transferFiles()
+#transferFiles()
 print("Finalizado o processo de obtenção de arquivos...")
 print()
-print("Processando os arquivos")
-processFiles()
+print("Processando os arquivos (Import to MongoDB)")
+#processFiles()
 print("Finalizado o processo dos arquivos...")
+print()
+print("Impostando para o Sql Server")
+ImportToSqlServer.importToSql(True)
+print("Finalizado o processo de importação para o Sql Server")
+print()
+print("Excluindo registro do MongoDB já importados para o Sql Server")
+PurgerImported()
+print("Finalizado o processo de exclusão de registros.")
+print("Veja log de importação")

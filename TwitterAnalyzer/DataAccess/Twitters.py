@@ -16,6 +16,10 @@ db = client["TwitterSearch"]
 twitters = db['twitters']
 wordsSummary = db['wordsSummary']
 
+
+def deleteImportedToSqlServer():
+    twitters.remove({'fl_sql_migrated':True})
+
 def getUsersByAge(start,end):
     return  db['users'].find({'$and':[{'user_age':{'$gte':start}},{'user_age':{'$lte':end}}]}) 
     
