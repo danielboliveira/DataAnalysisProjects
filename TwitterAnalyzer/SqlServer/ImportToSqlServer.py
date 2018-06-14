@@ -3,10 +3,9 @@ import DataAccess.Twitters
 import Helpers.Utils
 import datetime
 import pyodbc
-import pymongo
 
 
-__cnxn = pyodbc.connect('DSN=sqlTwitter;uid=sa;PWD=sa')
+__cnxn = pyodbc.connect('DSN=sqlTwitter;uid=sa;PWD=sa',autocommit=True)
 __cursor = __cnxn.cursor()
 __log = open('import.log', 'a')
 __verbose = True

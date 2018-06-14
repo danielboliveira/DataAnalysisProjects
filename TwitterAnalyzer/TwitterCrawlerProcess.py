@@ -12,29 +12,37 @@ from SqlServer import ImportToSqlServer
 ftp_host='191.237.254.23'
 ftp_user='admin'
 ftp_passwd='elrond'
-path_local = './crawler_results_not_process/'
+path_local = './crawler_results/'
 path_local_processed = './crawler_results_processed/'
 nlp = spacy.load('pt_core_news_sm')
 
-def transferFiles():
+def transferFiles(maxtransfer = 100):
     
     if not (os.path.exists(path_local)):
        os.mkdir(path_local)
-            
+#            
     client = ftp(host=ftp_host)
     client.login(user=ftp_user,passwd=ftp_passwd)
-
+#
     lstFiles = client.nlst()
+#    lstFiles = os.listdir(path_local)
+    
     print("Total de arquivos para transferir:{0}".format(len(lstFiles)))
+    index = 0;
     
     for file in lstFiles:
         try:
-            print ("Transferindo arquivo:{0} ....".format(file),end='')
+#            print ("Transferindo arquivo:{0} ....".format(file),end='')
+#            shutil.move(path_local+file,path_local_processed+file)
             client.retrbinary("RETR " + file, open(path_local + file, 'wb').write)
             print ("OK",end='')
             print (" Excluindo arquivo:{0} ....".format(file),end='')
             client.delete(file)
             print ("OK")
+            index+=1
+            if (index >= maxtransfer):
+                break
+            
         except:
             print ("Erro:{0}".format(sys.exc_info()[0]))
             
@@ -86,11 +94,11 @@ def PurgerImported():
     DataAccess.Twitters.deleteImportedToSqlServer()
     
 print("Iniciando processo de obtenção de arquivos...")
-#transferFiles()
+transferFiles(1)
 print("Finalizado o processo de obtenção de arquivos...")
 print()
 print("Processando os arquivos (Import to MongoDB)")
-#processFiles()
+processFiles()
 print("Finalizado o processo dos arquivos...")
 print()
 print("Impostando para o Sql Server")
