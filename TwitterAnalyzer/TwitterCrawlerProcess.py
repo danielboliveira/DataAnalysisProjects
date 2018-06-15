@@ -8,6 +8,7 @@ import Helpers.Utils
 import spacy
 import re
 from SqlServer import ImportToSqlServer
+from SqlServer import Sentimento
 
 ftp_host='191.237.254.23'
 ftp_user='admin'
@@ -28,17 +29,19 @@ def transferFiles(maxtransfer = 100):
 #    lstFiles = os.listdir(path_local)
     
     print("Total de arquivos para transferir:{0}".format(len(lstFiles)))
+    print("Quantidade máxima a ser processada:{0}".format(maxtransfer))
     index = 0;
     
     for file in lstFiles:
         try:
-#            print ("Transferindo arquivo:{0} ....".format(file),end='')
+            print ("Transferindo arquivo:{0} ....".format(file),end='')
 #            shutil.move(path_local+file,path_local_processed+file)
             client.retrbinary("RETR " + file, open(path_local + file, 'wb').write)
             print ("OK",end='')
             print (" Excluindo arquivo:{0} ....".format(file),end='')
             client.delete(file)
             print ("OK")
+            
             index+=1
             if (index >= maxtransfer):
                 break
@@ -49,7 +52,14 @@ def transferFiles(maxtransfer = 100):
     
     client.quit()
 
-def PersisteInMongoDB(lstData):
+def Persiste(lstData):
+    
+ total = len(lstData)
+ index = 0
+ Helpers.Utils.printProgressBar(index,total,prefix = 'Progress:', suffix = 'Complete',showAndamento=True)  
+ 
+ ImportToSqlServer.InitConnection()
+ 
  for data in lstData:
     data['crawler'] = datetime.datetime.now()
 
@@ -68,7 +78,17 @@ def PersisteInMongoDB(lstData):
            
       data['entidades'] = entidades  
       data['fl_sql_migrated'] = False
-      DataAccess.Twitters.insertPost(data)
+      
+      ImportToSqlServer.importToSql(data)
+      
+      index += 1
+      Helpers.Utils.printProgressBar(index,total,prefix = 'Progress:', suffix = 'Complete',showAndamento=True)
+ 
+ ImportToSqlServer.CloseConnection()
+ ImportToSqlServer.FlushLog()
+ 
+           
+#      DataAccess.Twitters.insertPost(data)
 
 def processFiles():
     
@@ -83,7 +103,7 @@ def processFiles():
     for file in lstdir:
      with open(path_local+file, 'rb') as f:
          lstData = pickle.load(f)
-         PersisteInMongoDB(lstData)
+         Persiste(lstData)
 
      os.remove(path_local+file)
 #     shutil.move(path_local+file,path_local_processed+file)
@@ -92,20 +112,32 @@ def processFiles():
 
 def PurgerImported():
     DataAccess.Twitters.deleteImportedToSqlServer()
-    
+
+max_transfer = 100
+
+try:
+  max_transfer = int(sys.argv[1])    
+except:
+  max_transfer = 100    
+
 print("Iniciando processo de obtenção de arquivos...")
-transferFiles(1)
+transferFiles(max_transfer)
 print("Finalizado o processo de obtenção de arquivos...")
+
 print()
-print("Processando os arquivos (Import to MongoDB)")
+
+print("Processando os arquivos (Import to SQL)")
 processFiles()
 print("Finalizado o processo dos arquivos...")
+
 print()
-print("Impostando para o Sql Server")
-ImportToSqlServer.importToSql(True)
-print("Finalizado o processo de importação para o Sql Server")
-print()
-print("Excluindo registro do MongoDB já importados para o Sql Server")
-PurgerImported()
-print("Finalizado o processo de exclusão de registros.")
+
+print("Atualiza sentimento")
+Sentimento.AtualizarSentimento()
+print("Finalizado o processo...")
+
+#print("Excluindo registro do MongoDB já importados para o Sql Server")
+#PurgerImported()
+#print("Finalizado o processo de exclusão de registros.")
+
 print("Veja log de importação")

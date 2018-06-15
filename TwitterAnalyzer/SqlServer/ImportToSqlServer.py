@@ -3,20 +3,41 @@ import DataAccess.Twitters
 import Helpers.Utils
 import datetime
 import pyodbc
+import pickle
 
+__cnxn = None
+__cursor = None
+__path_not_processed = './crawler_results_not_process/'
 
-__cnxn = pyodbc.connect('DSN=sqlTwitter;uid=sa;PWD=sa',autocommit=True)
-__cursor = __cnxn.cursor()
 __log = open('import.log', 'a')
 __verbose = True
 
+def InitConnection():
+    __cnxn = pyodbc.connect('DSN=sqlTwitter;uid=sa;PWD=sa',autocommit=True)
+    __cursor = __cnxn.cursor()
+
+def Commit():
+    __cursor.commit()
+    
+def CloseConnection():
+    try:
+        __cursor.close()
+    except:
+        pass
+
+def FlushLog():
+    __log.flush()
+    
+     
 def __writeLog(mensagem):
     if (not (__verbose)):
         return
-    
-    now = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-    __log.write('{0}-{1}\n'.format(now,mensagem))
-    __log.flush()
+    try:
+        now = datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        __log.write('{0}-{1}\n'.format(now,mensagem))
+        __log.flush()
+    except:
+        pass
     
 def __importPlace(place):
     cmdSelect = 'select count(*) from place where id = ?'
@@ -330,10 +351,8 @@ def __importPost(post):
             positivo 					,            sentimento)
 
 
-### Código Principal ####  
-def importToSql(verbose=True):
+def importToSqlCollectionMongoDB():
     
-    __verbose = verbose
     to_commit = []      
     time = datetime.datetime.now()
      
@@ -349,15 +368,6 @@ def importToSql(verbose=True):
     
         for post in consulta:
            __importPost(post)
-        
-    #        try:
-    #            writeLog('Post - {0} - commit'.format(post['id']))
-    #            cursor.commit()
-    #            DataAccess.Twitters.twitters.update_one({'id':post['id']},{"$set":{'fl_sql_migrated':True}},upsert=False)
-    #        except:
-    #             msg = sys.exc_info()[0]
-    #             writeLog('Erro:' + msg)
-        
            to_commit.append(post['id'])
         
            Helpers.Utils.printProgressBar(index,total,prefix = 'Progress:', suffix = 'Complete',showAndamento=True)
@@ -376,13 +386,17 @@ def importToSql(verbose=True):
                 __writeLog('Total de Minutos(s):{0}'.format(minutes_diff))
                 
                 for id in to_commit:
-                    DataAccess.Twitters.twitters.update_one({'id':id},{"$set":{'fl_sql_migrated':True}},upsert=False)
+                    DataAccess.Twitters.twitters.delete_one({'id':id})
     
             except Exception as e:
+                filename = post['id']+'.post'
+                output = open(filename, 'wb')
+                pickle.dump(post, output, pickle.HIGHEST_PROTOCO)
+                output.close() 
                 msg = 'Erro:{0}'.format(str(e))
                 __writeLog(msg)
             finally:
-#                writeLog(",".join([str(i) for i in to_commit]))    
+                __writeLog(",".join([str(i) for i in to_commit]))    
                 to_commit.clear()
     
     except Exception as e:
@@ -397,4 +411,20 @@ def importToSql(verbose=True):
         __log.flush()
         __log.close()         
         print('Fim do processo')
-    
+
+def importToSql(post,verbose=True):
+    __verbose = verbose
+    try:
+       __importPost(post)
+       __cursor.commit()
+    except pyodbc.ProgrammingError as e:
+       filename = __path_not_processed + '{0}.post'.format(post['id'])
+       output = open(filename, 'wb')
+       pickle.dump(post, output, pickle.HIGHEST_PROTOCOL)
+       output.close() 
+       msg = 'Erro:{0}'.format(str(e))
+       print(msg)
+#    finally:
+#      __cursor.commit()
+   
+        
