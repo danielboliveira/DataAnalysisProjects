@@ -5,8 +5,8 @@ import datetime
 import pyodbc
 import pickle
 
-__cnxn = None
-__cursor = None
+__cnxn = pyodbc.connect('DSN=sqlTwitter;uid=sa;PWD=sa',autocommit=True)
+__cursor = __cnxn.cursor()
 __path_not_processed = './crawler_results_not_process/'
 
 __log = open('import.log', 'a')
@@ -414,9 +414,16 @@ def importToSqlCollectionMongoDB():
 
 def importToSql(post,verbose=True):
     __verbose = verbose
+    
+    #try:
+        #__cursor.commit()
+    #except pyodbc.ProgrammingError as e:
+    #    InitConnection()
+     #   pass
+    
     try:
        __importPost(post)
-       __cursor.commit()
+       #__cursor.commit()
     except pyodbc.ProgrammingError as e:
        filename = __path_not_processed + '{0}.post'.format(post['id'])
        output = open(filename, 'wb')
