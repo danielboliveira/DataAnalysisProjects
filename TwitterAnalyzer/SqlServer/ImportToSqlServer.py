@@ -13,6 +13,8 @@ __log = open('import.log', 'a')
 __verbose = True
 
 def InitConnection():
+    global __cnxn
+    global __cursor
     __cnxn = pyodbc.connect('DSN=sqlTwitter;uid=sa;PWD=sa',autocommit=True)
     __cursor = __cnxn.cursor()
 
@@ -413,17 +415,11 @@ def importToSqlCollectionMongoDB():
         print('Fim do processo')
 
 def importToSql(post,verbose=True):
+    global __verbose
     __verbose = verbose
-    
-    #try:
-        #__cursor.commit()
-    #except pyodbc.ProgrammingError as e:
-    #    InitConnection()
-     #   pass
     
     try:
        __importPost(post)
-       #__cursor.commit()
     except pyodbc.ProgrammingError as e:
        filename = __path_not_processed + '{0}.post'.format(post['id'])
        output = open(filename, 'wb')
@@ -431,7 +427,4 @@ def importToSql(post,verbose=True):
        output.close() 
        msg = 'Erro:{0}'.format(str(e))
        print(msg)
-#    finally:
-#      __cursor.commit()
-   
         

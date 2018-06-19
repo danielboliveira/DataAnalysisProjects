@@ -52,8 +52,7 @@ def transferFiles(maxtransfer=100):
     client.quit()
 
 
-def persiste(lstData):
-
+def persiste(lstData,file):
     total = len(lstData)
     index = 0
     Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)
@@ -84,14 +83,11 @@ def persiste(lstData):
             index += 1
             Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)
             
-            if (index == 0 or index >= 1000):
+            if (index == 0 or index % 1000 == 0):
                 ImportToSqlServer.Commit()
-
-#    ImportToSqlServer.CloseConnection()
-    ImportToSqlServer.FlushLog()
-
-
-#      DataAccess.Twitters.insertPost(data)
+            
+                
+    ImportToSqlServer.Commit()        
 
 def processFiles():
     if not (os.path.exists(path_local_processed)):
@@ -105,7 +101,7 @@ def processFiles():
     for file in lstdir:
         with open(path_local + file, 'rb') as f:
             lstData = pickle.load(f)
-            persiste(lstData)
+            persiste(lstData,file)
 
         os.remove(path_local + file)
         #     shutil.move(path_local+file,path_local_processed+file)
@@ -125,12 +121,12 @@ except:
     max_transfer = 100
 
 print("Iniciando processo de obtenção de arquivos...")
-#transferFiles(max_transfer)
+transferFiles(max_transfer)
 print("Finalizado o processo de obtenção de arquivos...")
 
 print()
 
-print("Processando os arquivos (Import to SQL)")
+print("Processando os arquivos (Export To CSV)")
 processFiles()
 print("Finalizado o processo dos arquivos...")
 
