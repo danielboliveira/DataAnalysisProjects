@@ -7,7 +7,7 @@ set @termo = 'bolsonaro'
 
 set @processamento = getdate()
 set @inicio = '2018-5-15'
-set @fim = '2018-06-15'
+set @fim = '2018-06-18'
 
 declare @aux Date
 set @aux = @inicio

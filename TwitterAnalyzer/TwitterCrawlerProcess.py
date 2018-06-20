@@ -9,6 +9,7 @@ import spacy
 import re
 from SqlServer import ImportToSqlServer
 from SqlServer import Sentimento
+import random
 
 ftp_host = '191.237.254.23'
 ftp_user = 'admin'
@@ -101,7 +102,10 @@ def processFiles():
     for file in lstdir:
         with open(path_local + file, 'rb') as f:
             lstData = pickle.load(f)
-            persiste(lstData,file)
+            if (len(lstData) > 1000):
+                persiste(random.sample(lstData,1000),file)
+            else:
+                persiste(lstData,file)
 
         os.remove(path_local + file)
         #     shutil.move(path_local+file,path_local_processed+file)
@@ -120,13 +124,13 @@ try:
 except:
     max_transfer = 100
 
-print("Iniciando processo de obtenção de arquivos...")
-transferFiles(max_transfer)
-print("Finalizado o processo de obtenção de arquivos...")
+#print("Iniciando processo de obtenção de arquivos...")
+#transferFiles(max_transfer)
+#print("Finalizado o processo de obtenção de arquivos...")
 
 print()
 
-print("Processando os arquivos (Export To CSV)")
+print("Processando os arquivos")
 processFiles()
 print("Finalizado o processo dos arquivos...")
 
