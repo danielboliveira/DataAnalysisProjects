@@ -4,14 +4,71 @@
 #import re
 from datetime import datetime
 from datetime import timedelta
-import string
 import sys
 from twython import TwythonStreamer
 import os
 import pickle
+import yaml
 
+config = ''
+try:
+    config = sys.argv[1]
+except:
+    config = 'crawler.config'
+    
+print("Arquivo configuracao:{0}".format(config))    
 
-total = int(sys.argv[1])
+with open(config, 'r') as ymlfile:
+    cfg = yaml.load(ymlfile)
+
+total = cfg['crawler']['TOTAL']
+path_results = cfg['crawler']['PATH_RESULTS']
+CONSUMER_KEY = cfg['crawler']['CONSUMER_KEY']
+CONSUMER_SECRET = cfg['crawler']['CONSUMER_SECRET']
+ACCESS_TOKEN = cfg['crawler']['ACCESS_TOKEN']
+ACCESS_TOKEN_SECRET = cfg['crawler']['ACCESS_TOKEN_SECRET']
+query = cfg['crawler']['QUERY']
+lang_query = cfg['crawler']['TWITTER_LANG']
+inicio = cfg['crawler']['INICIO']
+fim = cfg['crawler']['FIM']
+
+#Obtem qual termo a consultar
+queryList = query.split(';')
+consulta = queryList[0]
+queryList.append(queryList.pop(0)) #Move o termo para o fim da lista
+cfg['crawler']['QUERY'] = ";".join(queryList) #Atualiza o parâmetro do arquivo
+
+#Salva o arquivo config
+with open(config, 'w') as yaml_file:
+    yaml.dump(cfg, yaml_file, default_flow_style=False)
+
+dInicio = datetime.now()
+dFim = datetime.now()
+
+print("Total a capturar:{0}".format(total))
+print("Path:{0}".format(path_results))
+print("CONSUMER_KEY:{0}".format(CONSUMER_KEY))
+print("CONSUMER_SECRET:{0}".format(CONSUMER_SECRET))
+print("ACCESS_TOKEN:{0}".format(ACCESS_TOKEN))
+print("ACCESS_TOKEN_SECRET:{0}".format(ACCESS_TOKEN_SECRET))
+print("query:{0}".format(query))
+print("lang:{0}".format(lang_query))
+print("Inicio:{0}".format(inicio))
+print("Fim:{0}".format(fim))
+
+bloqueio = False
+
+try:
+    dInicio = datetime.strptime(inicio, '%d/%m/%Y %H:%M')
+    dFim = datetime.strptime(fim, '%d/%m/%Y %H:%M')
+    now = datetime.now()
+    
+    if not(now >= dInicio and now <= dFim):
+        print('***** Bloqueio de execução devido a configuração de inicio e fim ****')
+        bloqueio = True
+except:
+    pass
+
 
 def convertTwitterUTCTimeToLocal(valor):
      
@@ -27,13 +84,13 @@ def convertTwitterUTCTimeToLocal(valor):
  return local_timestamp
 
 def SafeFile(ts):
-        __path = './crawler_results/'
-        if not (os.path.exists(__path)):
-            os.mkdir(__path)
+        if not (os.path.exists(path_results)):
+            os.mkdir(path_results)
+            
         n = datetime.now()
-        d = os.listdir(path=__path)
+        d = os.listdir(path=path_results)
         
-        filename = __path + '{0:05d}'.format(len(d)+1)+'_'+'{0:04d}'.format(n.year)+'_'+'{0:02d}'.format(n.month)+'_'+'{0:02d}'.format(n.day)+'_'
+        filename = path_results + '{0:05d}'.format(len(d)+1)+'_'+'{0:04d}'.format(n.year)+'_'+'{0:02d}'.format(n.month)+'_'+'{0:02d}'.format(n.day)+'_'
         filename += '{0:02d}'.format(n.hour)+'_'+'{0:02d}'.format(n.minute)+'_'+'{0:02d}'.format(n.second)+'.pkl'
         
         if os.path.exists(filename):
@@ -44,17 +101,7 @@ def SafeFile(ts):
         output.close()   
 
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals=1, bar_length=50,showAndamento = False):
-    """
-    Call in a loop to create terminal progress bar
-
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        bar_length  - Optional  : character length of bar (Int)
-    """
+    
     str_format = "{0:." + str(decimals) + "f}"
     percents = str_format.format(100 * (iteration / float(total)))
     filled_length = int(round(bar_length * iteration / float(total)))
@@ -69,13 +116,11 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals=1, ba
 
     if iteration == total:
          print()
-#    sys.stdout.flush()
 
 class MyStreamer(TwythonStreamer):
     tweets = 0
     global_tweets = 0;
     ts = [];
-#    nlp = spacy.load('pt_core_news_sm')
     
     def on_success(self,data):
 
@@ -84,17 +129,6 @@ class MyStreamer(TwythonStreamer):
         if ('created_at' in data):
             data['criacao'] = convertTwitterUTCTimeToLocal(data['created_at'])
             
-#        entidades = []    
-#        if ('text' in data):
-#           text = data['text']
-#           text = ' '.join(re.sub("(@[A-Za-z0-9]+)|(\w+:\/\/\S+)","",text).split()).replace('RT :','').strip()
-#           doc = self.nlp(text)
-          
-#           for e in doc.ents:
-#               if (e.label_ == 'LOC' or e.label_ == 'PER' or e.label_ == 'ORG'):
-#                   entidades.append(e.string.strip())
-        
-#           data['entidades'] = entidades
             
         self.ts.append(data)
         
@@ -114,19 +148,10 @@ class MyStreamer(TwythonStreamer):
         self.disconnect()
        
 
-
-CONSUMER_KEY = "nDc5j9q7vhWi0krocmnM28vXE"
-CONSUMER_SECRET = "5KscghsdSOX3BYsVjdME0hsRAdMWHiblrvVcc9cApCKfiO8IQI"
-ACCESS_TOKEN = "52572176-zn9okwAeO0iAX1ZEW6E9YaE8iAn8IVdDYqyXN5lYb"
-ACCESS_TOKEN_SECRET = "EmQuHiuTncRSGy7Wvh5Q0InseGWm45TrxGcH4Q6pLad87"
-
-query = sys.argv[2]
-#query = 'eleições,lula,dilma,bolsonaro,jair bolsonaro,ciro gomes,boulos,manuela d\'avila,manuela davila,stf,sérgio moro,alckmin,henrique meirelles,petrolão,mensalão'
-#itens = query.split(',')
-
-
-stream = MyStreamer(CONSUMER_KEY,CONSUMER_SECRET,ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
-stream.statuses.filter(track=query,lang="pt")
+if not (bloqueio):
+    print("Consulta:{0}".format(consulta))
+    stream = MyStreamer(CONSUMER_KEY,CONSUMER_SECRET,ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
+    stream.statuses.filter(track=consulta,lang=lang_query)
 
 
 print("Finalizado...")

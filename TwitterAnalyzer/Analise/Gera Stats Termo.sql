@@ -3,11 +3,11 @@ declare @inicio date
 declare @fim date
 declare @processamento datetime
 
-set @termo = 'bolsonaro'
+set @termo = 'dilma'
 
 set @processamento = getdate()
 set @inicio = '2018-5-15'
-set @fim = '2018-06-18'
+set @fim = '2018-06-21'
 
 declare @aux Date
 set @aux = @inicio
