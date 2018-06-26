@@ -7,7 +7,7 @@ set @termo = 'seleção brasileira'
 
 set @processamento = getdate()
 set @inicio = '2018-6-22 08:00:00'
-set @fim = '2018-06-22 12:30:00'
+set @fim = '2018-06-23 00:00:00'
 
 select Replicate('0',2-len(Horas))+Cast(horas as varchar) + ':' + replicate('0',2-len(minutos))+ cast(minutos as varchar) as Horario,
        SUM(qt_positivo) as Positivo,
@@ -30,14 +30,13 @@ from(
 		(
 		select CAST(a.created_at as smalldatetime) as dt_twitter, a.sentimento
 			from twitter a
-			join [user] b on b.id = a.user_id
 		where a.created_at >= @inicio and a.created_at <= @fim
 			  and a.text like '%seleção brasileira%'
 			  and a.sentimento is not null
 			  --Pegando Twitters originais
-			  and a.retweeted_status_id is null
+			  --and a.retweeted_status_id is null
 			  --Apenas Usuários verificados
-			  and b.verified = 'FALSE'
+			  --and b.verified = 'FALSE'
 		) as T
 		group by T.dt_twitter
 --		Order by T.dt_twitter
@@ -45,7 +44,7 @@ from(
 group by horas,minutos
 order by horas*60+minutos
 
-
+/*
 
 select top 10 a.id,
 b.screen_name,
@@ -65,7 +64,7 @@ select a.id,SUM(a.[retweet_count])
 where a.retweeted_status_id = 1010158902795816960
 group by a.id
 order by 2 desc
-
+*/
 
 
 
