@@ -33,6 +33,8 @@ def AtualizarSentimento():
         
          sentimento = 'NEUTRO'
          dev = 0                       
+         pos = 0
+         neg = 0
          
          ### Sentimento ####
          if (len(text) > 0):                       

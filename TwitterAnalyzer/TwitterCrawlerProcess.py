@@ -97,12 +97,18 @@ def processFiles():
     lstdir = os.listdir(path_local)
     total = len(lstdir)
     index = 0
+    
+    if (total == 0):
+        return
     Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)
 
-    for file in lstdir:
-        with open(path_local + file, 'rb') as f:
-            lstData = pickle.load(f)
-            
+    for file in flstdir:
+            try:
+                with open(path_local + file, 'rb') as f:
+                    lstData = pickle.load(f)
+            except:
+                continue
+        
             if (len(lstData) == 0):
                 continue
             
@@ -122,10 +128,10 @@ def processFiles():
             else:
                 persiste(lstData,file)
 
-        os.remove(path_local + file)
+            os.remove(path_local + file)
         #     shutil.move(path_local+file,path_local_processed+file)
-        Helpers.Utils.printProgressBar(index + 1, total, prefix='Progress:', suffix='Complete', showAndamento=True)
-        index += 1
+            Helpers.Utils.printProgressBar(index + 1, total, prefix='Progress:', suffix='Complete', showAndamento=True)
+            index += 1
 
 
 def PurgerImported():
