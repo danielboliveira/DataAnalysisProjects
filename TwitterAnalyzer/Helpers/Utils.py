@@ -5,8 +5,27 @@ import string
 import sys
 from nltk.stem.lancaster import LancasterStemmer
 from nltk.corpus import stopwords
- 
- 
+import yaml
+
+def getConfig(configFile):
+     with open(configFile, 'r') as ymlfile:
+         cfg = yaml.load(ymlfile)
+
+     d = {}
+    
+     d['TOTAL'] = cfg['crawler']['TOTAL']
+     d['PATH_RESULTS'] = cfg['crawler']['PATH_RESULTS']
+     d['CONSUMER_KEY'] = cfg['crawler']['CONSUMER_KEY']
+     d['CONSUMER_SECRET'] = cfg['crawler']['CONSUMER_SECRET']
+     d['ACCESS_TOKEN'] = cfg['crawler']['ACCESS_TOKEN']
+     d['ACCESS_TOKEN_SECRET'] = cfg['crawler']['ACCESS_TOKEN_SECRET']
+     d['QUERY'] = cfg['crawler']['QUERY']
+     d['TWITTER_LANG'] = cfg['crawler']['TWITTER_LANG']
+     d['INICIO'] = cfg['crawler']['INICIO']
+     d['FIM'] = cfg['crawler']['FIM']
+     
+     return d
+     
 def convertTwitterUTCTimeToLocal(valor):
      
  clean_timestamp = datetime.strptime(valor,'%a %b %d %H:%M:%S +0000 %Y')

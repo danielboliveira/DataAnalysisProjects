@@ -9,7 +9,7 @@ set @termo = 'seleção brasileira'
 
 set @processamento = getdate()
 set @inicio = '2018-6-22 08:00:00'
-set @fim = '2018-06-22 12:00:00'
+set @fim = '2018-06-22 12:30:00'
 
 select a.id as PostID,a.created_at,a.sentimento, a.text as Post_Text,b.id as UserID, b.screen_name,
              (select COUNT (*) from twitter tw where tw.in_reply_to_status_id = a.id 
@@ -33,36 +33,36 @@ where a.created_at >=  @inicio and a.created_at <=  @fim
 
  go
 
- select horario,SUM(totalRetweeted) as Total
+ select top 5 * 
+ from sumario_stats_twitters
+ where sumario_stats_twitters.Post_Text like '%neymar%' and sentimento = 'NEGATIVO'
+ order by TotalRetweeted desc
+
+ go
+
+ select Replicate('0',2-len(Horas))+Cast(horas as varchar) + ':' + replicate('0',2-len(minutos))+ cast(minutos as varchar) as Horario,
+       sum(case when sentimento = 'POSITIVO' then TotalRetweeted else 0 end) as qt_positivos,
+	   sum(case when sentimento = 'NEUTRO' then TotalRetweeted else 0 end) as qt_neutros,
+	   sum(case when sentimento = 'NEGATIVO' then TotalRetweeted else 0 end) as qt_negtivos
  from
  (
- select  DatePart(hour,created_at) as hora,
-         fncParticiona5Minutos(created_at) as minutos,
-               TotalRetweeted
- from sumario_stats_twitters
- where sentimento = 'Negativo'
+	 select DatePart(hour,created_at) as horas,
+			dbo.fncParticiona5Minutos(created_at) as minutos,
+			sentimento,
+			TotalRetweeted
+	 from sumario_stats_twitters
  )T
- group by horario
+ group by horas,minutos
+ order by horas*60 + minutos
 
-
- order by DATEPART(hour,created_at)*60 + DATEPART(MINUTE,created_at)
-
-
-
-
-
-
-
-
-
- select * from [user] where id = 859892492560453632
-
- select DelayCompartilhamento,COUNT(*) total
+ select DelayCompartilhamento ,COUNT(*) total
  from(
  select DATEDIFF(MINUTE,(select b.created_at from twitter b where b.id = a.retweeted_status_id),a.created_at) as DelayCompartilhamento,
         a.id
-  from twitter a join [user] b on b.id = a.user_id
-where a.retweeted_status_id = 1010161535212314626
+  from twitter a
+where exists(select 1 from sumario_stats_twitters ss where ss.PostID = a.retweeted_status_id and ss.sentimento = 'NEGATIVO')
 ) T
 group by T.DelayCompartilhamento
+order by 1
+
 
