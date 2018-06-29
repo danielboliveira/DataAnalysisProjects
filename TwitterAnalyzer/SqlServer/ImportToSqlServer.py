@@ -1,36 +1,21 @@
 # -*- coding: utf-8 -*-
-import DataAccess.Twitters
 import Helpers.Utils
 import datetime
 import pyodbc
+import SqlServer.dbHelper as db
+#import db
 import pickle
 
-__cnxn = pyodbc.connect('DSN=sqlTwitter;uid=sa;PWD=sa',autocommit=True)
-__cursor = __cnxn.cursor()
 __path_not_processed = './crawler_results_not_process/'
 
 __log = open('import.log', 'a')
 __verbose = True
 
-def InitConnection():
-    global __cnxn
-    global __cursor
-    __cnxn = pyodbc.connect('DSN=sqlTwitter;uid=sa;PWD=sa',autocommit=True)
-    __cursor = __cnxn.cursor()
-
-def Commit():
-    __cursor.commit()
-    
-def CloseConnection():
-    try:
-        __cursor.close()
-    except:
-        pass
 
 def FlushLog():
     __log.flush()
     
-     
+
 def __writeLog(mensagem):
     if (not (__verbose)):
         return
@@ -48,6 +33,8 @@ def __importPlace(place):
               'VALUES (?,?,?,?,?,?,?,?)'
     #verifica se já existe o place
     id = place['id']
+    
+    __cursor,_ = db.getConnection()
     __cursor.execute(cmdSelect,id)
     result = __cursor.fetchone()
 
@@ -63,12 +50,11 @@ def __importPlace(place):
     bounding_box = None
     __cursor.execute(cmdInsert,id,url,place_type,name,full_name,country_code,country,bounding_box)
     
-#    writeLog('Place - {0} - Tentando commit'.format(place['id']))
-#    cursor.commit()
-    
+   
 def __importEntidades(id,ents):
     
     cmdDelete = 'delete from entidade where twitter_id = ?'
+    __cursor,_ = db.getConnection()
     __cursor.execute(cmdDelete,id)
     
     for ent in ents:
@@ -79,6 +65,7 @@ def __importEntidades(id,ents):
 #    cursor.commit()
 
 def __importHashtags(id,hashtags):
+    __cursor,_ = db.getConnection()
     __cursor.execute('delete from [hashtag] where twitter_id = ?',id)
 #    cursor.commit()
     
@@ -89,6 +76,7 @@ def __importHashtags(id,hashtags):
 #    cursor.commit()
 
 def __importGeo(id,geo):
+    __cursor,_ = db.getConnection()
     __cursor.execute('delete from geo where twitter_id = ?',id)
 #    cursor.commit()
     
@@ -105,6 +93,7 @@ def __importUser(user):
     id	= user['id']
     
     #Verifica a existência do User
+    __cursor,_ = db.getConnection()
     __cursor.execute('select count(*) from [user] where id = ?',id)
     result = __cursor.fetchone()
     userExists = (result[0] > 0) #Criar a rotina para o Update
@@ -247,8 +236,9 @@ def __importUser(user):
 #    writeLog('user - {0} - Tentando commit'.format(id))
 #    cursor.commit()
                    
-def __importPost(post):
+def __importPost(post,tags,consulta_id):
     
+    __cursor,_ = db.getConnection()
     __cursor.execute('select count(*) from twitter where id=?',post['id'])
     result = __cursor.fetchone()
 
@@ -291,7 +281,7 @@ def __importPost(post):
     favorite_count 				=	post['favorite_count']
     favorited 					=	post['favorited']
     retweeted 					=	post['retweeted']
-    
+   
     possibly_sensitive = None
     if ('possibly_sensitive' in post):
         possibly_sensitive 			=	post['possibly_sensitive']
@@ -321,13 +311,13 @@ def __importPost(post):
     
     if ('quoted_status' in post and post['quoted_status'] != None):
         quoted_status_id = post['quoted_status']['id']
-        __importPost(post['quoted_status'])
+        __importPost(post['quoted_status'],tags,consulta_id)
     
     
     retweeted_status_id = None
     if ('retweeted_status' in post and post['retweeted_status'] != None):
         retweeted_status_id = post['retweeted_status']['id']
-        __importPost(post['retweeted_status'])
+        __importPost(post['retweeted_status'],tags,consulta_id)
     
   
       
@@ -336,8 +326,8 @@ def __importPost(post):
            ',[in_reply_to_screen_name],[user_id],[place_id],[quoted_status_id]'\
            ',[is_quote_status],[retweeted_status_id],[quote_count],[reply_count],[retweet_count]'\
            ',[favorite_count],[favorited],[retweeted],[possibly_sensitive],[filter_level]'\
-           ',[lang],[negativo],[positivo],[sentimento])'\
-           ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+           ',[lang],[negativo],[positivo],[sentimento],consulta_id,tags)'\
+           ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
             created_at 					,             id							, 
             text 						,            source 					  	,
             truncated 					,            in_reply_to_status_id 		,
@@ -350,76 +340,15 @@ def __importPost(post):
             favorited 					,            retweeted 					,
             possibly_sensitive 			,            filter_level 				,
             lang 					 	,            negativo 					,
-            positivo 					,            sentimento)
+            positivo 					,            sentimento,consulta_id,tags)
 
 
-def importToSqlCollectionMongoDB():
-    
-    to_commit = []      
-    time = datetime.datetime.now()
-     
-    try:
-        __writeLog('########### Inicio do processo ###########')
-        print('Inicio do processo')
-    
-        consulta = DataAccess.Twitters.twitters.find({'fl_sql_migrated' : False })
-        total = consulta.count()
-        index = 0
-
-        Helpers.Utils.printProgressBar(index,total,prefix = 'Progress:', suffix = 'Complete',showAndamento=True)
-    
-        for post in consulta:
-           __importPost(post)
-           to_commit.append(post['id'])
-        
-           Helpers.Utils.printProgressBar(index,total,prefix = 'Progress:', suffix = 'Complete',showAndamento=True)
-           index += 1
-        
-           if (index == 0 or index % 1000 == 0):
-            try:
-                __writeLog('Tentando commit')
-                __cursor.commit()
-                __writeLog('Commit realizado')
-                
-                time_aux = time
-                time = datetime.datetime.now()
-                minutes_diff = (time - time_aux).total_seconds() / 60.0
-                
-                __writeLog('Total de Minutos(s):{0}'.format(minutes_diff))
-                
-                for id in to_commit:
-                    DataAccess.Twitters.twitters.delete_one({'id':id})
-    
-            except Exception as e:
-                filename = post['id']+'.post'
-                output = open(filename, 'wb')
-                pickle.dump(post, output, pickle.HIGHEST_PROTOCO)
-                output.close() 
-                msg = 'Erro:{0}'.format(str(e))
-                __writeLog(msg)
-            finally:
-                __writeLog(",".join([str(i) for i in to_commit]))    
-                to_commit.clear()
-    
-    except Exception as e:
-        msg = 'Erro:{0}'.format(str(e))
-        __writeLog(msg)
-        __writeLog(",".join([str(i) for i in to_commit]))  
-        print('\n'+msg)
-    finally:
-        __cursor.commit()
-        __cursor.close()
-        __writeLog('######## Processo finalizado #######\n')
-        __log.flush()
-        __log.close()         
-        print('Fim do processo')
-
-def importToSql(post,verbose=True):
+def importToSql(post,tags,consulta_id,verbose=True):
     global __verbose
     __verbose = verbose
     
     try:
-       __importPost(post)
+       __importPost(post,tags,consulta_id)
     except pyodbc.ProgrammingError as e:
        filename = __path_not_processed + '{0}.post'.format(post['id'])
        output = open(filename, 'wb')

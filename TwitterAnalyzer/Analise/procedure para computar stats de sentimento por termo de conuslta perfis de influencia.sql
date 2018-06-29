@@ -1,4 +1,4 @@
-create procedure prcGetStatsSentimentoInfluencia
+alter procedure prcGetStatsSentimentoInfluencia
 @cd_consulta int,
 @inicio datetime,
 @fim datetime
@@ -55,7 +55,7 @@ from(
 		select CAST(a.created_at as smalldatetime) as dt_twitter, a.sentimento
 			from twitterAnalyzer.dbo.twitter a
 			  join twitterAnalyzer.dbo.[user] b on a.user_id = b.id
-		where a.created_at >= @inicio and a.created_at <= @fim
+		where a.crawlered >= @inicio and a.crawlered <= @fim
 			  and a.text like '%' + @termo + '%'
 			  and a.sentimento is not null
 			   --Pegando Twitters originais

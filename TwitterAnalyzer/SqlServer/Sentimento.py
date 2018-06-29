@@ -2,15 +2,17 @@ import spacy
 import Helpers.Utils
 import math
 import re
-import pyodbc
+import SqlServer.dbHelper as db
 
 def AtualizarSentimento():
-    __cnxn = pyodbc.connect('DSN=sqlTwitter;uid=sa;PWD=sa',autocommit = True)
-    __cursor = __cnxn.cursor()
-
+    __cursor,__cnxn = db.getConnection()
+    
     __cursor.execute('select id,text from twitter where sentimento is null')
     data = __cursor.fetchall()
     total = len(data)
+    
+    if total <= 0:
+        return
 
     processado = 0
 #    line_count = 1

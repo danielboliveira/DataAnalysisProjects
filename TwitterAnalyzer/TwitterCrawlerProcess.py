@@ -2,21 +2,23 @@
 from ftplib import FTP as ftp
 import os, datetime
 import pickle
-import sys, shutil
+import sys
 import DataAccess.Twitters
 import Helpers.Utils
-import spacy
-import re
 from SqlServer import ImportToSqlServer
 from SqlServer import Sentimento
+from SqlServer import Analysis
 import random
+#from nltk.tokenize import word_tokenize
 
 ftp_host = ''
 ftp_user = ''
 ftp_passwd = ''
 path_local = './crawler_results/'
 path_local_processed = './crawler_results_processed/'
-nlp = spacy.load('pt_core_news_sm')
+
+#nlp = spacy.load('pt_core_news_sm')
+#Tagger treinado
 
 
 def transferFiles(maxtransfer=100):
@@ -53,12 +55,12 @@ def transferFiles(maxtransfer=100):
     client.quit()
 
 
-def persiste(lstData,file):
+def persiste(lstData,file,consulta_id):
     total = len(lstData)
     index = 0
     Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)
 
-    ImportToSqlServer.InitConnection()
+    ImportToSqlServer.getConnection()
 
     for data in lstData:
         data['crawler'] = datetime.datetime.now()
@@ -67,30 +69,31 @@ def persiste(lstData,file):
             data['criacao'] = Helpers.Utils.convertTwitterUTCTimeToLocal(data['created_at'])
 
         entidades = []
-        if 'text' in data:
-            text = data['text']
-            text = ' '.join(re.sub("(@[A-Za-z0-9]+)|(\w+:\/\/\S+)", "", text).split()).replace('RT :', '').strip()
-            doc = nlp(text)
+#        if 'text' in data:
+#            text = data['text']
+#            text = ' '.join(re.sub("(@[A-Za-z0-9]+)|(\w+:\/\/\S+)", "", text).split()).replace('RT :', '').strip()
+#            tokens = word_tokenize(text)
+#            tags = tagger.tag(tokens)        
+#            
+#            for e in tags:
+#                if 'PRON' != e[1] and 'ADP' != e[1] and 'DET' != e[1]:
+#                    entidades.append(e[0])
 
-            for e in doc.ents:
-                if 'LOC' == e.label_ or e.label_ == 'PER' or e.label_ == 'ORG':
-                    entidades.append(e.string.strip())
+        data['entidades'] = entidades
+        data['fl_sql_migrated'] = False
 
-            data['entidades'] = entidades
-            data['fl_sql_migrated'] = False
+        ImportToSqlServer.importToSql(data,file,consulta_id)
 
-            ImportToSqlServer.importToSql(data)
-
-            index += 1
-            Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)
+        index += 1
+        Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)
             
-            if (index == 0 or index % 1000 == 0):
-                ImportToSqlServer.Commit()
+        if (index == 0 or index % 1000 == 0):
+              ImportToSqlServer.Commit()
             
                 
     ImportToSqlServer.Commit()        
 
-def processFiles():
+def processFiles(consulta_id):
     if not (os.path.exists(path_local_processed)):
         os.mkdir(path_local_processed)
 
@@ -102,7 +105,7 @@ def processFiles():
         return
     Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)
 
-    for file in flstdir:
+    for file in lstdir:
             try:
                 with open(path_local + file, 'rb') as f:
                     lstData = pickle.load(f)
@@ -124,9 +127,9 @@ def processFiles():
             sample = round(n*N/(N+n))
             
             if (len(lstData) > 1000):
-                persiste(random.sample(lstData,sample),file)
+                persiste(random.sample(lstData,sample),file,consulta_id)
             else:
-                persiste(lstData,file)
+                persiste(lstData,file,consulta_id)
 
             os.remove(path_local + file)
         #     shutil.move(path_local+file,path_local_processed+file)
@@ -137,13 +140,19 @@ def processFiles():
 def PurgerImported():
     DataAccess.Twitters.deleteImportedToSqlServer()
 
-
-max_transfer = 1
-
 try:
-    max_transfer = int(sys.argv[1])
+    consulta_id = int(sys.argv[1])
 except:
-    max_transfer = 100
+    aux = input("Informe o código da consulta: ")
+    consulta_id = int(aux)
+    
+print("Realizando processamento para a consulta:{0}".format(consulta_id))    
+termo = Analysis.getTermo(consulta_id)
+
+if (termo == None):
+    sys.exit("Termo de pesquisa inválido")
+
+print("Termo:{0}".format(termo))    
 
 #print("Iniciando processo de obtenção de arquivos...")
 #transferFiles(max_transfer)
@@ -152,7 +161,7 @@ except:
 print()
 
 print("Processando os arquivos")
-processFiles()
+processFiles(consulta_id)
 print("Finalizado o processo dos arquivos...")
 
 print()
@@ -161,8 +170,8 @@ print("Atualiza sentimento")
 Sentimento.AtualizarSentimento()
 print("\nFinalizado o processo...")
 
-# print("Excluindo registro do MongoDB já importados para o Sql Server")
-# PurgerImported()
-# print("Finalizado o processo de exclusão de registros.")
+print("Processar termos e palavras")
 
+print("Finalizado o processo de termos e palavras.")
+Analysis.processWords(consulta_id)
 print("Veja log de importação")

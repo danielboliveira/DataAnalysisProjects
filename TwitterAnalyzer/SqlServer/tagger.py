@@ -63,7 +63,7 @@ def convert_to_universal_tag(t, reverse=False):
     return tagdict.get(t, "." if all(tt in punctuation for tt in t) else t)
 
 # nltk.corpus.mac_morpho.tagged_sents is incorrect, converting tagged_paras to tagged_sents
-dataset1 = list(nltk.corpus.floresta.tagged_sents())
+dataset1 = list(nltk.corpus.mac_morpho.tagged_sents())
 dataset2 = [[w[0] for w in sent] for sent in nltk.corpus.mac_morpho.tagged_paras()]
 
 traindata = [[(w, convert_to_universal_tag(t)) for (w, t) in sent] for sent in dataset1]

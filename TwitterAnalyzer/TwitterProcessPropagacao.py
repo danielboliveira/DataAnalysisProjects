@@ -1,4 +1,4 @@
-ãoimport pyodbc
+import pyodbc
 import Helpers.Utils
 import datetime
 import twython
