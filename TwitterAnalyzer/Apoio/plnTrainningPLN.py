@@ -30,6 +30,7 @@ nlp = spacy.load('pt_core_news_sm')
 
 
 print('Inicio:',datetime.datetime.now().time())
+modelName = '
 #
 train_data = []
 #

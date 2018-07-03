@@ -75,27 +75,23 @@ def processWords(consulta_id):
 
 
 #Sumariza as informação de Estatisticas de palavras
-def processWordsStats(consulta_id, inicio,fim):
+def processWordsStats(consulta_id):
     cursor,_ = db.getConnection()
-    cursor.execute('exec [prcStatsWordCount] ?,?,?',
-                   consulta_id,
-                   inicio,
-                   fim)
+    cursor.execute('exec [prcStatsWordCount] ?', consulta_id)
     
-def getWords(consulta_id, inicio,fim,sentimento=None):
+def getWords(consulta_id,sentimento=None):
   
   cursor,_ = db.getConnection()
   
   if (not sentimento):
       cursor.execute('select a.qt_word,a.ds_word from stats_word_count a ' +
-                     'where a.cd_consulta = ? '+ 
-                     'and a.dt_inicio >= ? and a.dt_fim <= ?',
-                     consulta_id,inicio,fim)
+                     'where a.cd_consulta = ? ',
+                     consulta_id)
   else:    
       cursor.execute('select a.qt_word,a.ds_word from stats_word_count a ' +
                      'where a.cd_consulta = ? '+ 
-                     'and a.dt_inicio >= ? and a.dt_fim <= ? and a.ds_sentimento = ?',
-                     consulta_id,inicio,fim,sentimento)
+                     'and a.ds_sentimento = ?',
+                     consulta_id,sentimento)
       
       
   result = cursor.fetchall()

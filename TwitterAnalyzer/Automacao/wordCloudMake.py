@@ -11,7 +11,7 @@ fim = datetime.strptime('2018-06-28 01:30:00', '%Y-%m-%d %H:%M:%S')
 print (consulta_id)
 print(inicio)
 print(fim)
-text = SqlServer.Analysis.getWords(consulta_id,inicio,fim)
+text = SqlServer.Analysis.getWords(consulta_id)
 
 # Generate a word cloud image
 wordcloud = WordCloud(background_color="white").generate(text)

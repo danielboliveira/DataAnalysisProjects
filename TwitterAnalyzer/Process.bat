@@ -1,1 +1,0 @@
-C:\Users\daniel\Anaconda3\python C:\GitRepors\DataAnalysisProjects\TwitterAnalyzer\TwitterCrawlerProcess.py

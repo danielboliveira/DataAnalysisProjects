@@ -161,6 +161,7 @@ print("Termo:{0}".format(termo))
 print()
 
 print("Processando os arquivos")
+path_local = path_local + str(consulta_id)+'/'
 processFiles(consulta_id)
 print("Finalizado o processo dos arquivos...")
 
