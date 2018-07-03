@@ -170,8 +170,21 @@ print("Atualiza sentimento")
 Sentimento.AtualizarSentimento()
 print("\nFinalizado o processo...")
 
-print("Processar termos e palavras")
-
-print("Finalizado o processo de termos e palavras.")
+print("Processar termos / palavras / Estatísticas")
 Analysis.processWords(consulta_id)
+
+print("Processar estatísticas de termos")
+Analysis.processWordsStats(consulta_id)
+
+
+print("Processar estatísitcas de sentimentos")
+Analysis.processStatsSentimento(consulta_id)
+
+print("Processar estatísitcas de sentimentos (apenas influência)")
+Analysis.processStatsSentimentoInfluencia(consulta_id)
+
+print("Processar estatísitcas de RTs")
+Analysis.processStatsRts(consulta_id)
+
+
 print("Veja log de importação")

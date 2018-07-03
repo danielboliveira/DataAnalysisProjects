@@ -7,6 +7,7 @@ from nltk.corpus import stopwords
 from string import punctuation
 import os
 import Helpers.Utils
+import pandas as pd
 
 __PATH__ = os.path.dirname(__file__)
 
@@ -19,14 +20,46 @@ def getTermo(consulta_id):
     else:
         return None
 
+def getStatsRTS(consulta_id,sentimento,max_delay = None):
+    cursor = db.getCursor()
+    sql = 'select qt_delay,qt_total  from stats_rts where cd_consulta = ? and ds_sentimento = ? order by ds_sentimento,qt_delay'
+    cursor.execute(sql,consulta_id,sentimento)
+    consulta = cursor.fetchall()
+    
+    delay = []
+    quantidade = []
+    total = 0
+    
+    for r in consulta:
+        delay.append(r.qt_delay)
+        total = r.qt_total + total
+        quantidade.append(r.qt_total)
+    
+    perc = []
+    
+    for t in quantidade:
+        perc.append(100*t/total)
+        
+    Data = {'Delay':delay,'Total':quantidade,'%':perc}
+    df = pd.DataFrame(Data,columns=['Delay','Total','%'],index=delay)
+    
+    if (max_delay):
+        return df[df['Delay'] <= max_delay]
+    else:
+        return df
+        
+
 def processWords(consulta_id):
    
     termo = getTermo(consulta_id)
     if not termo:
         return;
+        
     cursor = db.getCursor()
+ 
     #Limpa a tabela de termos
     cursor.execute('delete from a from words a join twitter b on a.twitter_id = b.id where b.consulta_id = ? and fl_words_processed = 0',consulta_id)
+    
     cursor.execute('select id,text from twitter where consulta_id = ? and fl_words_processed = 0',consulta_id)
     consulta = cursor.fetchall()
     total = len(consulta)
@@ -66,9 +99,12 @@ def processWords(consulta_id):
 
         for tag in tags:
             if (tag[1] == 'NOUN' or tag[1] == 'ADJ' or tag[1] == 'VERB') and (tag[0] != termo and len(tag[0]) > 2 and len(tag[0]) < 100):
-                cursor.execute('insert into words(twitter_id,text) values (?,?)',row.id,tag[0])
+                cursor.execute('insert into words(twitter_id,text,tag) values (?,?,?)',row.id,tag[0],tag[1])
+#                print("{0} - {1}".format(row.id,tag[0]))
+                cursor.commit()
                 #words.append(tag[0])
         
+        cursor.execute('update twitter set fl_words_processed = 1 where id = ?',row.id)
         cursor.commit()
         index += 1
         Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)        
@@ -78,6 +114,19 @@ def processWords(consulta_id):
 def processWordsStats(consulta_id):
     cursor,_ = db.getConnection()
     cursor.execute('exec [prcStatsWordCount] ?', consulta_id)
+    
+def processStatsSentimento(consulta_id):
+    cursor,_ = db.getConnection()
+    cursor.execute('exec [dbo].[prcGetStatsSentimento] ?', consulta_id)
+
+def processStatsSentimentoInfluencia(consulta_id):
+    cursor,_ = db.getConnection()
+    cursor.execute('exec [dbo].[prcGetStatsSentimentoInfluencia] ?', consulta_id)
+
+def processStatsRts(consulta_id):
+    cursor,_ = db.getConnection()
+    cursor.execute('exec [dbo].[prcGetStatsRetweetsDelay] ?', consulta_id)
+
     
 def getWords(consulta_id,sentimento=None):
   
