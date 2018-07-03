@@ -248,8 +248,8 @@ def __importPost(post,tags,consulta_id):
     if ('place' in post and post['place'] != None):
         __importPlace(post['place'])
     
-    if ('entidades' in post and post['entidades'] != None):
-        __importEntidades(post['id'],post['entidades'])
+#    if ('entidades' in post and post['entidades'] != None):
+#        __importEntidades(post['id'],post['entidades'])
         
     if ('entities' in post and post['entities'] != None):
         if ('hashtags' in post['entities'] and post['entities']['hashtags'] != None):

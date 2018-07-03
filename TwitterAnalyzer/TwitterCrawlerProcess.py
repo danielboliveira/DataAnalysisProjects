@@ -8,6 +8,7 @@ import Helpers.Utils
 from SqlServer import ImportToSqlServer
 from SqlServer import Sentimento
 from SqlServer import Analysis
+from SqlServer import dbHelper
 import random
 #from nltk.tokenize import word_tokenize
 
@@ -59,8 +60,6 @@ def persiste(lstData,file,consulta_id):
     total = len(lstData)
     index = 0
     Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)
-
-    ImportToSqlServer.getConnection()
 
     for data in lstData:
         data['crawler'] = datetime.datetime.now()
