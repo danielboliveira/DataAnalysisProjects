@@ -87,10 +87,10 @@ def persiste(lstData,file,consulta_id):
         Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)
             
         if (index == 0 or index % 1000 == 0):
-              ImportToSqlServer.Commit()
+              dbHelper.Commit()
             
                 
-    ImportToSqlServer.Commit()        
+    dbHelper.Commit()        
 
 def processFiles(consulta_id):
     if not (os.path.exists(path_local_processed)):

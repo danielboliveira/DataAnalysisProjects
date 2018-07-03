@@ -238,6 +238,9 @@ def __importUser(user):
                    
 def __importPost(post,tags,consulta_id):
     
+    if not('id' in post):
+        return
+    
     __cursor,_ = db.getConnection()
     __cursor.execute('select count(*) from twitter where id=?',post['id'])
     result = __cursor.fetchone()
