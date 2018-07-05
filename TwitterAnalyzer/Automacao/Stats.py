@@ -57,11 +57,12 @@ def generateStatsSentimentoGraphs(consulta_id):
         explode = (0.1, 0, 0, 0)  # explode 1st slice
          
         # Plot
-        plt.pie(sizes, explode=explode, labels=labels, colors=colors,autopct='%1.1f%%', shadow=True, startangle=140)
-S       plt.axis('equal')
-        fig = plt.plot()
-        
-        
+        file_graph_1 = path+"\\"+"sentimentos_media.png"
+        utils.removeFile(file_graph_1)
+        plt.pie(sizes, labels=labels, colors=colors,autopct='%1.1f%%', shadow=True, startangle=140)
+        plt.axis('equal')
+        fig = plt.get_figure()
+        fig.savefig(file_graph_1)        
         
     except Exception as e:
         logging.error(traceback.format_exc())
