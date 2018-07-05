@@ -20,6 +20,41 @@ def getTermo(consulta_id):
     else:
         return None
 
+def getStatsTwitters(consulta_id,somente_influenciadores = False):
+    if (somente_influenciadores):
+        sql = 'select hr_index,dt_stats,hr_stats,qt_positivo,qt_negativo,qt_neutro from [dbo].[vw_stats_sentimento_termo_influencia] where cd_consulta = ? order by 1'
+    else:
+        sql = 'select hr_index,dt_stats,hr_stats,qt_positivo,qt_negativo,qt_neutro from [dbo].[vw_stats_sentimento_termo] where cd_consulta = ?  order by 1'
+        
+    cursor = db.getCursor()
+    cursor.execute(sql,consulta_id)
+    consulta = cursor.fetchall()
+    
+    index = []
+    data = []
+    horario = []
+    positivo = []
+    negativo = []
+    neutro=[]
+    
+    for row in consulta:
+        index.append(row.hr_index)
+        data.append(row.dt_stats)
+        horario.append(row.hr_stats)
+        positivo.append(row.qt_positivo)
+        negativo.append(row.qt_negativo)
+        neutro.append(row.qt_neutro)
+    
+    d = {'Data':data,'Horario':horario,'Positivos':positivo,'Negativos':negativo,'Neutros':neutro}
+    df = pd.DataFrame(d,index=index)
+    
+    cols = df.loc[: , "Negativos":"Positivos"]
+    df['%Negativos'] = cols['Negativos']/cols.sum(axis=1)
+    df['%Positivos'] = cols['Positivos']/cols.sum(axis=1)
+    df['%Neutros'] = cols['Neutros']/cols.sum(axis=1)
+    
+    return df
+    
 def getStatsRTS(consulta_id,sentimento,max_delay = None):
     cursor = db.getCursor()
     sql = 'select qt_delay,qt_total  from stats_rts where cd_consulta = ? and ds_sentimento = ? order by ds_sentimento,qt_delay'
@@ -29,25 +64,29 @@ def getStatsRTS(consulta_id,sentimento,max_delay = None):
     delay = []
     quantidade = []
     total = 0
-    
+ 
+       
+    perc = []
+ 
     for r in consulta:
         delay.append(r.qt_delay)
         total = r.qt_total + total
         quantidade.append(r.qt_total)
+        perc.append(0)
     
-    perc = []
-    
-    for t in quantidade:
-        perc.append(100*t/total)
-        
     Data = {'Delay':delay,'Total':quantidade,'%':perc}
     df = pd.DataFrame(Data,columns=['Delay','Total','%'],index=delay)
+    df['%'] = df['Total']*100/total
     
     if (max_delay):
         return df[df['Delay'] <= max_delay]
     else:
         return df
         
+#plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')    
+#fig = plt.get_figure()
+#fig.savefig("output.png")        
+#plt = df.plot(figsize=(20,5),kind='line',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')        
 
 def processWords(consulta_id):
    

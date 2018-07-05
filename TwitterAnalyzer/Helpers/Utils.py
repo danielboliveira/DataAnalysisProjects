@@ -3,9 +3,46 @@ from datetime import datetime
 from datetime import timedelta
 import string
 import sys
+import os
 from nltk.stem.lancaster import LancasterStemmer
 from nltk.corpus import stopwords
 import yaml
+
+__Analises_Root_Path__ = 'c:\\Analise\\'
+
+def getAnalisesPath(consulta_id,horario=False):
+    '''
+    Função para obter o caminho para serem gerados os arquivos de resultados de análises
+    consulta_id = Código da consulta a ter os dados análisados
+    horario = Indica se no nome do sub-folder terá hora e minutos (para análises mais recorrentes)
+    '''
+    global __Analises_Root_Path__     
+    makeDir(__Analises_Root_Path__)
+    
+    path = __Analises_Root_Path__ + '\\' + str(consulta_id)
+    makeDir(path)
+    
+    if (horario):
+        mask = '%Y_%m_%d_%H_%M'
+    else:
+        mask = '%Y_%m_%d'
+        
+    path = path + '\\' + datetime.now().strftime(mask)
+    makeDir(path)
+    
+    return path
+
+def removeFile(file):
+    '''
+    Função para remover um arquivo.
+    file = Full Path do arquivo a ser removido
+    '''
+    if os.path.isfile(file):
+        os.remove(file)
+
+def makeDir(path):
+    if (not os.path.exists(path)):
+        os.mkdir(path)
 
 def getConfig(configFile):
      with open(configFile, 'r') as ymlfile:

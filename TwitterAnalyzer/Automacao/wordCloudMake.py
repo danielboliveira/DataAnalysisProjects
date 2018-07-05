@@ -1,36 +1,49 @@
 # -*- coding: utf-8 -*- 
 import SqlServer.Analysis
-from datetime import datetime
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+import Helpers.Utils as utils
+import traceback
+import logging
 
-consulta_id = 3
-inicio = datetime.strptime('2018-06-27 17:00:00', '%Y-%m-%d %H:%M:%S')
-fim = datetime.strptime('2018-06-28 01:30:00', '%Y-%m-%d %H:%M:%S')
+#Parãmetro para a função
+def makeWordsCloud(consulta_id):
 
-print (consulta_id)
-print(inicio)
-print(fim)
-text = SqlServer.Analysis.getWords(consulta_id)
+    try:
+        path = utils.getAnalisesPath(consulta_id)
+        #Limpa possíveis arquivos
+        fileWordsFull = path+"\\"+"words_full.png"
+        utils.removeFile(fileWordsFull)
+    
+        fileWordsNeg = path+"\\"+"words_negativo.png"
+        utils.removeFile(fileWordsNeg)
+        
+        fileWordsPos = path+"\\"+"words_positivo.png"
+        utils.removeFile(fileWordsPos)
+        
+        #Nuvem com todos os termos
+        text = SqlServer.Analysis.getWords(consulta_id)
+        wordcloud = WordCloud(background_color="white").generate(text)
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis("off")
+        plt.savefig(fileWordsFull,dpi=400,bbox_inches='tight')
+        
+        #Nuvem apenas com os temos positivos
+        text = SqlServer.Analysis.getWords(consulta_id,'POSITIVO')
+        wordcloud = WordCloud(background_color="white").generate(text)
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis("off")
+        plt.savefig(fileWordsPos,dpi=400,bbox_inches='tight')
+        
+        #Nuvem apenas com os termos negativos
+        text = SqlServer.Analysis.getWords(consulta_id,'NEGATIVO')
+        wordcloud = WordCloud(background_color="white").generate(text)
+        plt.imshow(wordcloud, interpolation='bilinear')
+        plt.axis("off")
+        plt.savefig(fileWordsNeg,dpi=400,bbox_inches='tight')
+        
+    except Exception as e:
+        logging.error(traceback.format_exc())
 
-# Generate a word cloud image
-wordcloud = WordCloud(background_color="white").generate(text)
-
-# Display the generated image:
-# the matplotlib way:
-
-plt.imshow(wordcloud, interpolation='bilinear')
-plt.axis("off")
-plt.show()
-
-# lower max_font_size
-#wordcloud = WordCloud(max_font_size=40).generate(text)
-#plt.figure()
-#plt.imshow(wordcloud, interpolation="bilinear")
-#plt.axis("off")
-#plt.show()
-
-# The pil way (if you don't have matplotlib)
-# image = wordcloud.to_image()
-# image.show()
+    
 
