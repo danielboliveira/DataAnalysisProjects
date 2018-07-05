@@ -39,9 +39,29 @@ def generateStatsSentimentoGraphs(consulta_id):
         
         file_graph_2 = path+"\\"+"sentimentos_bar_influencia.png"
         utils.removeFile(file_graph_2)
-        plt = plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')    
+        plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')    
         fig = plt.get_figure()
-        fig.savefig(file_graph_2)        
+        fig.savefig(file_graph_2) 
+        
+        ds = df.describe()
+        r = ds.drop(['std','count','min','max','25%','50%','75%']).drop(['Negativos','Neutros','Positivos'],axis=1)
+        
+        prcNeg = r['%Negativos'][0]
+        prcPos = r['%Positivos'][0]
+        prcNeu = r['%Neutros'][0]
+        
+        # Data to plot
+        labels = 'Negativos', 'Positivos', 'Neutros'
+        sizes = [prcNeg, prcPos, prcNeu]
+        colors = ['red', 'blue', 'silver']
+        explode = (0.1, 0, 0, 0)  # explode 1st slice
+         
+        # Plot
+        plt.pie(sizes, explode=explode, labels=labels, colors=colors,autopct='%1.1f%%', shadow=True, startangle=140)
+S       plt.axis('equal')
+        fig = plt.plot()
+        
+        
         
     except Exception as e:
         logging.error(traceback.format_exc())
