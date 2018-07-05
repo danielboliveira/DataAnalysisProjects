@@ -139,6 +139,7 @@ def processFiles(consulta_id):
 def PurgerImported():
     DataAccess.Twitters.deleteImportedToSqlServer()
 
+
 try:
     consulta_id = int(sys.argv[1])
 except:

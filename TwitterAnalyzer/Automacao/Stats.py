@@ -3,6 +3,7 @@ import Helpers.Utils as utils
 import traceback
 import logging
 from SqlServer import Analysis as an
+import matplotlib.pyplot as plt_pie
 
 #plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')    
 #fig = plt.get_figure()
@@ -24,7 +25,7 @@ def generateStatsSentimentoGraphs(consulta_id):
         
         file_graph_2 = path+"\\"+"sentimentos_bar.png"
         utils.removeFile(file_graph_2)
-        plt = plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')    
+        plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')    
         fig = plt.get_figure()
         fig.savefig(file_graph_2)        
         
@@ -59,9 +60,9 @@ def generateStatsSentimentoGraphs(consulta_id):
         # Plot
         file_graph_1 = path+"\\"+"sentimentos_media.png"
         utils.removeFile(file_graph_1)
-        plt.pie(sizes, labels=labels, colors=colors,autopct='%1.1f%%', shadow=True, startangle=140)
-        plt.axis('equal')
-        fig = plt.get_figure()
+        plt_pie.pie(sizes, labels=labels, colors=colors,autopct='%1.1f%%', shadow=True, startangle=140)
+        plt_pie.axis('equal')
+        fig = plt_pie.figure()
         fig.savefig(file_graph_1)        
         
     except Exception as e:

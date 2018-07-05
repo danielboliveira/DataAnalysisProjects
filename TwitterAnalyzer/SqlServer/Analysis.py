@@ -83,10 +83,6 @@ def getStatsRTS(consulta_id,sentimento,max_delay = None):
     else:
         return df
         
-#plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')    
-#fig = plt.get_figure()
-#fig.savefig("output.png")        
-#plt = df.plot(figsize=(20,5),kind='line',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')        
 
 def processWords(consulta_id):
    
