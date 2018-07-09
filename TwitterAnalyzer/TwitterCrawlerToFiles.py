@@ -34,16 +34,37 @@ fim = cfg['crawler']['FIM']
 
 #Obtem qual termo a consultar
 queryList = query.split(';')
-consulta = queryList[0]
+
+aux = queryList[0].split('-')
+consulta = aux[1]
+id = aux[0]
+path_results = path_results + '//' + id + '//'
+
 queryList.append(queryList.pop(0)) #Move o termo para o fim da lista
+
 cfg['crawler']['QUERY'] = ";".join(queryList) #Atualiza o parâmetro do arquivo
+
+bloqueio = False
+
+try:
+    dInicio = datetime.strptime(inicio, '%d/%m/%Y %H:%M')
+    dFim = datetime.strptime(fim, '%d/%m/%Y %H:%M')
+    now = datetime.now()
+    
+    if (now >= dFim):
+        #ajusta as datas
+        cfg['crawler']['INICIO'] = (dInicio + timedelta(days=1)).strftime("%d/%m/%Y %H:%M")
+        cfg['crawler']['FIM']    = (dFim + timedelta(days=1)).strftime("%d/%m/%Y %H:%M")
+        
+except:
+    pass
+
+   
 
 #Salva o arquivo config
 with open(config, 'w') as yaml_file:
     yaml.dump(cfg, yaml_file, default_flow_style=False)
 
-dInicio = datetime.now()
-dFim = datetime.now()
 
 print("Total a capturar:{0}".format(total))
 print("Path:{0}".format(path_results))
@@ -56,18 +77,6 @@ print("lang:{0}".format(lang_query))
 print("Inicio:{0}".format(inicio))
 print("Fim:{0}".format(fim))
 
-bloqueio = False
-
-try:
-    dInicio = datetime.strptime(inicio, '%d/%m/%Y %H:%M')
-    dFim = datetime.strptime(fim, '%d/%m/%Y %H:%M')
-    now = datetime.now()
-    
-    if not(now >= dInicio and now <= dFim):
-        print('***** Bloqueio de execução devido a configuração de inicio e fim ****')
-        bloqueio = True
-except:
-    pass
 
 
 def convertTwitterUTCTimeToLocal(valor):
