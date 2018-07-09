@@ -20,6 +20,45 @@ def getTermo(consulta_id):
     else:
         return None
 
+def getStatsTwittersTimeSeries(consulta_id,resample,somente_influenciadores = False):
+    
+    if (somente_influenciadores):
+        sql = 'select dt_stats,qt_positivo,qt_neutro,qt_negativo from vw_dataframe_sentimento where cd_consulta = ?'
+    else:
+        sql = 'select dt_stats,qt_positivo,qt_neutro,qt_negativo from vw_dataframe_sentimento where cd_consulta = ?'
+        
+    cursor = db.getCursor()
+    cursor.execute(sql,consulta_id)
+    consulta = cursor.fetchall()
+    
+    index = []
+    positivo = []
+    negativo = []
+    neutro=[]
+    
+    for row in consulta:
+        index.append(row.dt_stats)
+        positivo.append(row.qt_positivo)
+        negativo.append(row.qt_negativo)
+        neutro.append(row.qt_neutro)
+    
+    d = {'Positivos':positivo,'Negativos':negativo,'Neutros':neutro}
+    df = pd.DataFrame(d,index=index)
+    
+#    cols = df.loc[: , "Negativos":"Positivos"]
+#    df['%Negativos'] = cols['Negativos']/cols.sum(axis=1)
+#    df['%Positivos'] = cols['Positivos']/cols.sum(axis=1)
+#    df['%Neutros'] = cols['Neutros']/cols.sum(axis=1)
+    
+    dfh = df.resample(resample).mean().bfill()
+    cols = dfh.loc[: , "Negativos":"Positivos"]
+    dfh['%Negativos'] = cols['Negativos']/cols.sum(axis=1)
+    dfh['%Positivos'] = cols['Positivos']/cols.sum(axis=1)
+    dfh['%Neutros'] = cols['Neutros']/cols.sum(axis=1)
+    
+    return dfh
+    
+
 def getStatsTwitters(consulta_id,somente_influenciadores = False):
     if (somente_influenciadores):
         sql = 'select hr_index,dt_stats,hr_stats,qt_positivo,qt_negativo,qt_neutro from [dbo].[vw_stats_sentimento_termo_influencia] where cd_consulta = ? order by 1'

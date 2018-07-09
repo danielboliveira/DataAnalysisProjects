@@ -11,41 +11,68 @@ import matplotlib.pyplot as plt_pie
 #plt = df.plot(figsize=(20,5),kind='line',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')        
 
 
-def generateStatsSentimentoGraphs(consulta_id): 
+def generateStatsSentimentoGraphs(consulta_id,time_series=False,resample='H'): 
     try:    
         termo = an.getTermo(consulta_id)
         
         if (not termo):
             return
         
-        df = an.getStatsTwitters(consulta_id)
+        if (time_series == False):
+            df = an.getStatsTwitters(consulta_id)
+        else:
+            df = an.getStatsTwittersTimeSeries(consulta_id,resample = resample,somente_influenciadores = False)
         
         path = utils.getAnalisesPath(consulta_id)
-        
-        file_graph_1 = path+"\\"+"sentimentos_line.png"
+
+        file_graph_1 = path+"\\"+"sentimentos_line.png"        
         utils.removeFile(file_graph_1)
-        plt = df.plot(figsize=(20,5),kind='line',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))        
+        
+        if not time_series:
+            plt = df.plot(figsize=(20,5),kind='line',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))        
+        else:
+            plt = df.plot(figsize=(20,5),kind='line',x=df.index,y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))        
+        
         fig = plt.get_figure()
-        fig.savefig(file_graph_1)        
+        fig.savefig(file_graph_1)
         
         file_graph_2 = path+"\\"+"sentimentos_bar.png"
         utils.removeFile(file_graph_2)
-        plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))    
+        
+        if not time_series:
+            plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))    
+        else:
+            plt = df.plot(figsize=(10,4),kind='bar',x=df.index,y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))    
+
         fig = plt.get_figure()
-        fig.savefig(file_graph_2)        
-        
+        fig.savefig(file_graph_2)
+
         #Somentes os posts de influência
+        if (time_series == False):
+            df = an.getStatsTwitters(consulta_id,True)
+        else:
+            df = an.getStatsTwittersTimeSeries(consulta_id,resample = resample,somente_influenciadores = True)
         
-        df = an.getStatsTwitters(consulta_id,True)
+        
         file_graph_1 = path+"\\"+"sentimentos_line_influencia.png"
         utils.removeFile(file_graph_1)
-        plt = df.plot(figsize=(20,5),kind='line',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))        
+        
+        if not time_series:
+            plt = df.plot(figsize=(20,5),kind='line',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))        
+        else:
+            plt = df.plot(figsize=(20,5),kind='line',x=df.index,y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))        
+            
         fig = plt.get_figure()
         fig.savefig(file_graph_1)        
         
         file_graph_2 = path+"\\"+"sentimentos_bar_influencia.png"
         utils.removeFile(file_graph_2)
-        plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))    
+        
+        if not time_series:
+            plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))
+        else:
+            plt = df.plot(figsize=(10,4),kind='bar',x=df.index,y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))    
+        
         fig = plt.get_figure()
         fig.savefig(file_graph_2) 
         
