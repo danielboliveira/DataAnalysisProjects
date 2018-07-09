@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from ftplib import FTP as ftp
-import os, datetime
+import os, datetime,shutil
 import pickle
 import sys
 import DataAccess.Twitters
@@ -12,9 +12,9 @@ from SqlServer import dbHelper
 import random
 #from nltk.tokenize import word_tokenize
 
-ftp_host = ''
-ftp_user = ''
-ftp_passwd = ''
+ftp_host = '191.232.48.84'
+ftp_user = 'daniel.oliveira'
+ftp_passwd = 'Dpkl29154220*'
 path_local = './crawler_results/'
 path_local_processed = './crawler_results_processed/'
 
@@ -28,30 +28,36 @@ def transferFiles(maxtransfer=100):
     #
     client = ftp(host=ftp_host)
     client.login(user=ftp_user, passwd=ftp_passwd)
+    client.set_pasv(True)
+    
+    ls = []
+    client.retrlines('MLSD', ls.append)
+    print(ls)
+    
     #
-    lstFiles = client.nlst()
+#    lstFiles = client.nlst()
     #    lstFiles = os.listdir(path_local)
 
-    print("Total de arquivos para transferir:{0}".format(len(lstFiles)))
-    print("Quantidade máxima a ser processada:{0}".format(maxtransfer))
-    index = 0;
-
-    for file in lstFiles:
-        try:
-            print("Transferindo arquivo:{0} ....".format(file), end='')
-            #            shutil.move(path_local+file,path_local_processed+file)
-            client.retrbinary("RETR " + file, open(path_local + file, 'wb').write)
-            print("OK", end='')
-            print(" Excluindo arquivo:{0} ....".format(file), end='')
-            client.delete(file)
-            print("OK")
-
-            index += 1
-            if (index >= maxtransfer):
-                break
-
-        except:
-            print("Erro:{0}".format(sys.exc_info()[0]))
+#    print("Total de arquivos para transferir:{0}".format(len(lstFiles)))
+#    print("Quantidade máxima a ser processada:{0}".format(maxtransfer))
+#    index = 0;
+#
+#    for file in lstFiles:
+#        try:
+#            print("Transferindo arquivo:{0} ....".format(file), end='')
+#            #            shutil.move(path_local+file,path_local_processed+file)
+#            client.retrbinary("RETR " + file, open(path_local + file, 'wb').write)
+#            print("OK", end='')
+#            print(" Excluindo arquivo:{0} ....".format(file), end='')
+#            client.delete(file)
+#            print("OK")
+#
+#            index += 1
+#            if (index >= maxtransfer):
+#                break
+#
+#        except:
+#            print("Erro:{0}".format(sys.exc_info()[0]))
 
     client.quit()
 
@@ -92,21 +98,22 @@ def persiste(lstData,file,consulta_id):
                 
     dbHelper.Commit()        
 
-def processFiles(consulta_id):
+def processFiles(consulta_id,path):
     if not (os.path.exists(path_local_processed)):
         os.mkdir(path_local_processed)
-
-    lstdir = os.listdir(path_local)
+        
+    lstdir = os.listdir(path)
     total = len(lstdir)
     index = 0
     
     if (total == 0):
         return
+    
     Helpers.Utils.printProgressBar(index, total, prefix='Progress:', suffix='Complete', showAndamento=True)
 
     for file in lstdir:
             try:
-                with open(path_local + file, 'rb') as f:
+                with open('{0}//{1}'.format(path,file), 'rb') as f:
                     lstData = pickle.load(f)
             except:
                 continue
@@ -130,39 +137,47 @@ def processFiles(consulta_id):
             else:
                 persiste(lstData,file,consulta_id)
 
-            os.remove(path_local + file)
+            os.remove('{0}//{1}'.format(path,file))
         #     shutil.move(path_local+file,path_local_processed+file)
             Helpers.Utils.printProgressBar(index + 1, total, prefix='Progress:', suffix='Complete', showAndamento=True)
             index += 1
-
+      
+    shutil.rmtree(path, ignore_errors=True)
 
 def PurgerImported():
     DataAccess.Twitters.deleteImportedToSqlServer()
 
-
-try:
-    consulta_id = int(sys.argv[1])
-except:
-    aux = input("Informe o código da consulta: ")
-    consulta_id = int(aux)
-    
-print("Realizando processamento para a consulta:{0}".format(consulta_id))    
-termo = Analysis.getTermo(consulta_id)
-
-if (termo == None):
-    sys.exit("Termo de pesquisa inválido")
-
-print("Termo:{0}".format(termo))    
-
 #print("Iniciando processo de obtenção de arquivos...")
-#transferFiles(max_transfer)
+#transferFiles()
 #print("Finalizado o processo de obtenção de arquivos...")
 
-print()
+    
 
+#
+#
+#print()
 print("Processando os arquivos")
-path_local = path_local + str(consulta_id)+'/'
-processFiles(consulta_id)
+
+dirs = [dir for dir in os.scandir(path_local) if dir.is_dir()]
+ids  = []
+for edir in dirs:
+    try:
+        print()
+        print('\tProcessando diretório:{0}'.format(edir.path))
+        consulta_id = int(edir.name)
+        print('\tID Consulta:{0}'.format(consulta_id))
+        termo = Analysis.getTermo(consulta_id)
+
+        if (termo == None):
+            raise ValueError('Termo de consulta inválido')
+        print('\tTermo:{0}'.format(termo))
+        print()
+        ids.append(consulta_id)
+        processFiles(consulta_id,edir.path)  
+        print()
+    except:
+        print("Erro:{0}".format(sys.exc_info()[0]))
+        continue
 print("Finalizado o processo dos arquivos...")
 
 print()
@@ -170,22 +185,34 @@ print()
 print("Atualiza sentimento")
 Sentimento.AtualizarSentimento()
 print("\nFinalizado o processo...")
-
+#
 print("Processar termos / palavras / Estatísticas")
-Analysis.processWords(consulta_id)
+
+for id in ids:
+    print('\tConsulta ID:{0}'.format(id))
+    Analysis.processWords(id)
 
 print("Processar estatísticas de termos")
-Analysis.processWordsStats(consulta_id)
+for id in ids:
+    print('\tConsulta ID:{0}'.format(id))
+    Analysis.processWordsStats(id)
 
 
 print("Processar estatísitcas de sentimentos")
-Analysis.processStatsSentimento(consulta_id)
+for id in ids:
+    print('\tConsulta ID:{0}'.format(id))
+    Analysis.processStatsSentimento(id)
 
+#
 print("Processar estatísitcas de sentimentos (apenas influência)")
-Analysis.processStatsSentimentoInfluencia(consulta_id)
-
+for id in ids:
+    print('\tConsulta ID:{0}'.format(id))
+    Analysis.processStatsSentimentoInfluencia(id)
+#
 print("Processar estatísitcas de RTs")
-Analysis.processStatsRts(consulta_id)
-
-
+for id in ids:
+    print('\tConsulta ID:{0}'.format(id))
+    Analysis.processStatsRts(id)
+#
+#
 print("Veja log de importação")
