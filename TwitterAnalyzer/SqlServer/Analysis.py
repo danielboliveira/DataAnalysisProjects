@@ -23,7 +23,7 @@ def getTermo(consulta_id):
 def getStatsTwittersTimeSeries(consulta_id,resample,somente_influenciadores = False):
     
     if (somente_influenciadores):
-        sql = 'select dt_stats,qt_positivo,qt_neutro,qt_negativo from vw_dataframe_sentimento where cd_consulta = ?'
+        sql = 'select dt_stats,qt_positivo,qt_neutro,qt_negativo from vw_dataframe_sentimento_influencia where cd_consulta = ?'
     else:
         sql = 'select dt_stats,qt_positivo,qt_neutro,qt_negativo from vw_dataframe_sentimento where cd_consulta = ?'
         
@@ -50,7 +50,7 @@ def getStatsTwittersTimeSeries(consulta_id,resample,somente_influenciadores = Fa
 #    df['%Positivos'] = cols['Positivos']/cols.sum(axis=1)
 #    df['%Neutros'] = cols['Neutros']/cols.sum(axis=1)
     
-    dfh = df.resample(resample).mean().bfill()
+    dfh = df.resample(resample).sum().bfill()
     cols = dfh.loc[: , "Negativos":"Positivos"]
     dfh['%Negativos'] = cols['Negativos']/cols.sum(axis=1)
     dfh['%Positivos'] = cols['Positivos']/cols.sum(axis=1)
