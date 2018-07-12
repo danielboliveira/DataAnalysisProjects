@@ -7,7 +7,15 @@ import matplotlib.pyplot as mplt
 import matplotlib.dates as mdates
 from matplotlib.dates import MONDAY
 import datetime
-import numpy as np
+
+
+def generateAllOutPuts(id):
+    generateStatsSentimentoLineGraphs(id,False,'D',True)
+    generateStatsSentimentoLineGraphs(id,True,'D',True)
+    generateStatsSentimentoBarGraphs(id,False,'D',True)
+    generateStatsSentimentoBarGraphs(id,True,'D',True)
+    generateStatsSentimentoPieGraph(id)
+    
 
 #plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')    
 #fig = plt.get_figure()
@@ -40,7 +48,7 @@ def generateStatsSentimentoLineGraphs(consulta_id,somente_influenciadores=False,
             major_formatter = mdates.DateFormatter('%d %b')
             xlabel = 'Dia(s)'
         
-            
+        mplt.clf()    
         fig, ax = mplt.subplots()
         ax.plot(xs,ypos,'b',label='% Positivos')
         ax.plot(xs,yneg,'r',label='% Negativos')
@@ -72,17 +80,19 @@ def generateStatsSentimentoLineGraphs(consulta_id,somente_influenciadores=False,
             print()
             print(df.describe())
         else:
-            path = utils.getAnalisesPath(consulta_id)
+            path = utils.getAnalisesPath(consulta_id) 
             mask = '%Y_%m_%d'
             file_prefix =  datetime.datetime.now().strftime(mask)
             
             if not somente_influenciadores:
                 file = path+"\\"+"{0}_sentimentos_line.png".format(file_prefix)
+                file_csv = path+"\\"+"{0}_dados.csv".format(file_prefix)
+                file_describe_csv = path+"\\"+"{0}_dados_describe.csv".format(file_prefix)
             else:
                 file = path+"\\"+"{0}_sentimentos_influencia_line.png".format(file_prefix)
-                
-            file_csv = path+"\\"+"{0}_dados.csv".format(file_prefix)
-            file_describe_csv = path+"\\"+"{0}_dados_describe.csv".format(file_prefix)
+                file_csv = path+"\\"+"{0}_dados_influencia.csv".format(file_prefix)
+                file_describe_csv = path+"\\"+"{0}_dados_describe_influencia.csv".format(file_prefix) 
+            
             utils.removeFile(file)
             fig.savefig(file)
             df.to_csv(file_csv,sep='\t')
@@ -238,6 +248,11 @@ def generateStatsSentimentoGraphs(consulta_id,time_series=False,resample='H',xti
     
 def generateStatsSentimentoPieGraph(consulta_id): 
     try:    
+        termo = an.getTermo(consulta_id)
+        
+        if (not termo):
+            return
+        
         df = an.getStatsTwitters(consulta_id)
         
         path = utils.getAnalisesPath(consulta_id)
@@ -260,7 +275,9 @@ def generateStatsSentimentoPieGraph(consulta_id):
 #        explode = (0.1, 0, 0, 0)  # explode 1st slice
          
         # Plot
+        mplt.clf()
         mplt.pie(sizes, labels=labels, colors=colors,autopct='%1.1f%%', shadow=True, startangle=140)
+        mplt.title('Análise sentimental - Termo:{0}'.format(termo))
         mplt.axis('equal')
         mplt.savefig(file_graph_1)        
         

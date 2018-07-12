@@ -10,6 +10,7 @@ from SqlServer import Sentimento
 from SqlServer import Analysis
 from SqlServer import dbHelper
 import random
+from Automacao import Stats as st
 #from nltk.tokenize import word_tokenize
 
 ftp_host = '191.232.48.84'
@@ -160,6 +161,7 @@ print("Processando os arquivos")
 
 dirs = [dir for dir in os.scandir(path_local) if dir.is_dir()]
 ids  = []
+
 for edir in dirs:
     try:
         print()
@@ -215,4 +217,9 @@ for id in ids:
     Analysis.processStatsRts(id)
 #
 #
+print('Gerando dados de saída') 
+for id in ids:
+    print('\tConsulta ID:{0}'.format(id))
+    st.generateAllOutPuts(id)
+    
 print("Veja log de importação")

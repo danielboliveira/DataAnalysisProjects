@@ -7,6 +7,7 @@ import os
 from nltk.stem.lancaster import LancasterStemmer
 from nltk.corpus import stopwords
 import yaml
+from SqlServer import Analysis as an
 
 __Analises_Root_Path__ = 'c:\\Analise\\'
 
@@ -18,8 +19,14 @@ def getAnalisesPath(consulta_id,horario=False):
     '''
     global __Analises_Root_Path__     
     makeDir(__Analises_Root_Path__)
-    
-    path = __Analises_Root_Path__ + '\\' + str(consulta_id)
+
+    termo = an.getTermo(consulta_id)
+        
+    if (not termo):
+       path = __Analises_Root_Path__ + '\\' + str(consulta_id)
+    else:
+       path = __Analises_Root_Path__ + '\\' + termo.lower()
+       
     makeDir(path)
     
     if (horario):
