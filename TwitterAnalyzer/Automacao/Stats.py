@@ -17,6 +17,7 @@ def generateAllOutPuts(id):
     generateStatsSentimentoBarGraphs(id,False,'D',True)
     generateStatsSentimentoBarGraphs(id,True,'D',True)
     generateStatsSentimentoPieGraph(id)
+    generateProcessConsultaOutput(id)
 
 def generateProcessConsultaOutput(consulta_id,process_all=False):
     if not process_all:
