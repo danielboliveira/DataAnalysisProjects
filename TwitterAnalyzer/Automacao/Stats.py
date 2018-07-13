@@ -7,7 +7,9 @@ import matplotlib.pyplot as mplt
 import matplotlib.dates as mdates
 from matplotlib.dates import MONDAY
 import datetime
-
+import bs4
+import os
+import pandas as pd
 
 def generateAllOutPuts(id):
     generateStatsSentimentoLineGraphs(id,False,'D',True)
@@ -15,8 +17,104 @@ def generateAllOutPuts(id):
     generateStatsSentimentoBarGraphs(id,False,'D',True)
     generateStatsSentimentoBarGraphs(id,True,'D',True)
     generateStatsSentimentoPieGraph(id)
-    
 
+def generateProcessConsultaOutput(consulta_id,process_all=False):
+    if not process_all:
+        path = utils.getAnalisesPath(consulta_id)
+        genereateHtmlOutput(path,consulta_id)
+        return
+    
+    termo = an.getTermo(consulta_id)
+    if (not termo):
+        return
+    
+    path = utils.__Analises_Root_Path__ + termo
+    if not os.path.exists(path):
+        return
+    
+    for _, dirs,_  in os.walk(path):
+        for dir in dirs:
+            genereateHtmlOutput(path+'\\'+dir,consulta_id)
+            
+def genereateHtmlOutput(path,consulta_id):
+ try:
+    termo = an.getTermo(consulta_id)
+    if (not termo):
+        return
+#    
+#    path = utils.getAnalisesPath(consulta_id)
+#    path = 'C:\\Analise\\lula\\2018_07_12'
+    
+    with open("./Templates/stats_results.html") as inf:    
+       txt = inf.read()
+       soup = bs4.BeautifulSoup(txt,'html.parser')
+
+    now =datetime.datetime.now()
+    
+       
+    soup.title.string = soup.title.string + now.strftime('%d/%m/%Y %H:%M')
+    
+    titulo = soup.select("#titulo")
+    if titulo :
+        titulo[0].string = 'Termo:{0}'.format(termo.upper())
+
+    footer = soup.find('div',{'id':'footer'})
+    if (footer):
+       txt = '<b>Resultados gerados em {0}</b>'.format(now.strftime('%d/%m/%Y %H:%M:%S'))
+       footer.append(bs4.BeautifulSoup(txt, 'html.parser'))        
+        
+                         
+    graphs = soup.find_all('img')
+    for g in graphs:
+        if (g['id'] == 'graficoSentimentoLine_img'):
+            g['src'] = 'sentimentos_line.png'
+
+        if (g['id'] == 'graficoSentimentoBar_img'):
+            g['src'] = 'sentimentos_bar.png'
+
+        if (g['id'] == 'graficoSentimentoLineInfluenciadores_img'):
+            g['src'] = 'sentimentos_influencia_line.png'
+
+        if (g['id'] == 'graficoSentimentoBarInfluenciadores_img'):
+            g['src'] = 'sentimentos_influencia_bar.png'
+
+    
+    divs =  soup.find_all('div')
+    for d in divs:
+
+        #table de dados de origem
+        if (d.has_attr('id') and d['id'] == 'table_graficoSentimento'):
+            if (os.path.exists(path+'\dados.csv')):
+                df = pd.read_csv(path+'\dados.csv',sep='\t')
+                df['%Negativos'] = df['%Negativos']*100
+                df['%Positivos'] = df['%Positivos']*100
+                df['%Neutros'] = df['%Neutros']*100
+                df.rename(columns={'Unnamed: 0':'Data'},inplace=True)
+                t = df.to_html(float_format=lambda x: '%10.2f' % x)
+                if (d):
+                    d.append(bs4.BeautifulSoup(t,'html.parser'))
+                    d.append(bs4.BeautifulSoup('<p>Totalizadores</p>','html.parser'))
+                    d.append( bs4.BeautifulSoup(df.describe().to_html(float_format=lambda x: '%10.2f' % x),'html.parser') )
+        
+        if (d.has_attr('id') and d['id'] == 'table_graficoSentimentoInfluenciadores'):
+            if (os.path.exists(path+'\dados_influencia.csv')):
+                df = pd.read_csv(path+'\dados_influencia.csv',sep='\t')
+                df['%Negativos'] = df['%Negativos']*100
+                df['%Positivos'] = df['%Positivos']*100
+                df['%Neutros'] = df['%Neutros']*100
+                df.rename(columns={'Unnamed: 0':'Data'},inplace=True)
+                t = df.to_html(float_format=lambda x: '%10.2f' % x)
+                if (d):
+                    d.append(bs4.BeautifulSoup(t,'html.parser'))
+                    d.append(bs4.BeautifulSoup('<p>Totalizadores</p>','html.parser'))
+                    d.append(bs4.BeautifulSoup(df.describe().to_html(float_format=lambda x: '%10.2f' % x),'html.parser') )
+
+    with open(path+'\\results.html', "w") as outf:
+      outf.write(str(soup))
+      
+ except Exception as e:
+    logging.error(traceback.format_exc())
+    
 #plt = df.plot(figsize=(10,4),kind='bar',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')    
 #fig = plt.get_figure()
 #fig.savefig("output.png")        
@@ -85,13 +183,13 @@ def generateStatsSentimentoLineGraphs(consulta_id,somente_influenciadores=False,
             file_prefix =  datetime.datetime.now().strftime(mask)
             
             if not somente_influenciadores:
-                file = path+"\\"+"{0}_sentimentos_line.png".format(file_prefix)
-                file_csv = path+"\\"+"{0}_dados.csv".format(file_prefix)
-                file_describe_csv = path+"\\"+"{0}_dados_describe.csv".format(file_prefix)
+                file = path+"\\"+"sentimentos_line.png"
+                file_csv = path+"\\"+"dados.csv"
+                file_describe_csv = path+"\\"+"dados_describe.csv"
             else:
-                file = path+"\\"+"{0}_sentimentos_influencia_line.png".format(file_prefix)
-                file_csv = path+"\\"+"{0}_dados_influencia.csv".format(file_prefix)
-                file_describe_csv = path+"\\"+"{0}_dados_describe_influencia.csv".format(file_prefix) 
+                file = path+"\\"+"sentimentos_influencia_line.png"
+                file_csv = path+"\\"+"dados_influencia.csv"
+                file_describe_csv = path+"\\"+"dados_describe_influencia.csv"
             
             utils.removeFile(file)
             fig.savefig(file)
@@ -160,9 +258,9 @@ def generateStatsSentimentoBarGraphs(consulta_id,somente_influenciadores=False,r
             file_prefix =  datetime.datetime.now().strftime(mask)
             
             if not somente_influenciadores:
-                file = path+"\\"+"{0}_sentimentos_bar.png".format(file_prefix)
+                file = path+"\\"+"sentimentos_bar.png"
             else:
-                file = path+"\\"+"{0}_sentimentos_influencia_bar.png".format(file_prefix)
+                file = path+"\\"+"sentimentos_influencia_bar.png".format(file_prefix)
 
             utils.removeFile(file)
             fig.savefig(file)
@@ -186,7 +284,7 @@ def generateStatsSentimentoGraphs(consulta_id,time_series=False,resample='H',xti
         mask = '%Y_%m_%d'
         file_prefix =  datetime.datetime.now().strftime(mask)
 
-        file_graph_1 = path+"\\"+"{0}_sentimentos_line.png".format(file_prefix)        
+        file_graph_1 = path+"\\"+"sentimentos_line.png"
         utils.removeFile(file_graph_1)
         
         if not time_series:
@@ -198,7 +296,7 @@ def generateStatsSentimentoGraphs(consulta_id,time_series=False,resample='H',xti
         fig = plt.get_figure()
         fig.savefig(file_graph_1)
         
-        file_graph_2 = path+"\\"+"{0}_sentimentos_bar.png".format(file_prefix)
+        file_graph_2 = path+"\\"+"sentimentos_bar.png"
         utils.removeFile(file_graph_2)
         
         if not time_series:
@@ -219,7 +317,7 @@ def generateStatsSentimentoGraphs(consulta_id,time_series=False,resample='H',xti
             df = an.getStatsTwittersTimeSeries(consulta_id,resample = resample,somente_influenciadores = True)
         
         
-        file_graph_1 = path+"\\"+"{0}_sentimentos_line_influencia.png".format(file_prefix)
+        file_graph_1 = path+"\\"+"sentimentos_line_influencia.png"
         utils.removeFile(file_graph_1)
         
         if not time_series:
