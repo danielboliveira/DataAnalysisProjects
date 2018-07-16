@@ -221,5 +221,6 @@ print('Gerando dados de saída')
 for id in ids:
     print('\tConsulta ID:{0}'.format(id))
     st.generateAllOutPuts(id)
-    
+
+st.generateIndexHtml([10,11])
 print("Veja log de importação")

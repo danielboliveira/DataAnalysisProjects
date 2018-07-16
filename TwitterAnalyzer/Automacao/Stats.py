@@ -19,6 +19,49 @@ def generateAllOutPuts(id):
     generateStatsSentimentoPieGraph(id)
     generateProcessConsultaOutput(id)
 
+def getPages(root = utils.__Analises_Root_Path__):
+    return [ (f.name,f.path) for f in os.scandir(root) if f.is_dir() ]
+    
+def generateIndexHtml(ids):
+    generateStatsSentimentoLineCompareGraphs(ids,'%Positivos',file='graficoAnalisePositivo.png',export=True)
+    generateStatsSentimentoLineCompareGraphs(ids,'%Negativos',file='graficoAnaliseNegativo.png',export=True)
+    
+    with open("./Templates/index.html") as inf:    
+      txt = inf.read()
+      soup = bs4.BeautifulSoup(txt,'html.parser')
+
+    now =datetime.datetime.now()
+
+    footer = soup.find('div',{'id':'footer'})
+    if (footer):
+       txt = '<b>Resultados gerados em {0}</b>'.format(now.strftime('%d/%m/%Y %H:%M:%S'))
+       footer.append(bs4.BeautifulSoup(txt, 'html.parser'))   
+    
+    graphs = soup.find_all('img')
+    for g in graphs:
+        if (g['id'] == 'graficoSentimentoLineNegatividade'):
+            g['src'] = 'graficoAnaliseNegativo.png'
+
+        if (g['id'] == 'graficoSentimentoLinePositividade'):
+            g['src'] = 'graficoAnalisePositivo.png'
+    
+    folderList = soup.ul
+    if folderList:
+        listDir = getPages()
+        for pg in listDir:
+           li = '<li>{0}<ul>{1}</ul></li>'
+           subpgs = getPages(pg[1])
+           sli = ''
+           for spg in subpgs:
+               d = datetime.datetime.strptime(spg[0], '%Y_%m_%d')
+               sli = sli + '<li><a href="{0}/{1}/results.html">{2}</a></li>'.format(pg[0],spg[0],d.strftime('%d/%m/%Y'))
+               
+           li = li.format(pg[0].upper(),sli)               
+           folderList.append(bs4.BeautifulSoup(li, 'html.parser'))
+    
+    with open(utils.__Analises_Root_Path__+'\\index.html', "w") as outf:
+      outf.write(str(soup))
+    
 def generateProcessConsultaOutput(consulta_id,process_all=False):
     if not process_all:
         path = utils.getAnalisesPath(consulta_id)
@@ -79,6 +122,8 @@ def genereateHtmlOutput(path,consulta_id):
         if (g['id'] == 'graficoSentimentoBarInfluenciadores_img'):
             g['src'] = 'sentimentos_influencia_bar.png'
 
+        if (g['id'] == 'graficoSentimentoPie_img'):
+            g['src'] = 'sentimentos_pie.png'
     
     divs =  soup.find_all('div')
     for d in divs:
@@ -196,6 +241,72 @@ def generateStatsSentimentoLineGraphs(consulta_id,somente_influenciadores=False,
             fig.savefig(file)
             df.to_csv(file_csv,sep='\t')
             df.describe().to_csv(file_describe_csv,sep='\t')
+        
+    except Exception as e:
+        logging.error(traceback.format_exc())
+
+def generateStatsSentimentoLineCompareGraphs(ids,Dimensao,somente_influenciadores=False,resample='D',file='fig.png',export=False): 
+    try:    
+        #Busca as informacoes
+        if (resample.lower() == 'm'): #xticks Mês
+            major_locator = mdates.MonthLocator(range(1, 13))
+            minor_locator = mdates.WeekdayLocator(MONDAY) 
+            major_formatter = mdates.DateFormatter('%b %y')
+            xlabel = 'Mes(es)'
+        else:
+            major_locator = mdates.DayLocator() 
+            minor_locator = mdates.DayLocator()
+            major_formatter = mdates.DateFormatter('%d %b')
+            xlabel = 'Dia(s)'
+        
+        mplt.clf() 
+        fig, ax = mplt.subplots()
+        ax.xaxis.set_major_locator(major_locator)
+        ax.xaxis.set_major_formatter(major_formatter)
+        ax.xaxis.set_minor_locator(minor_locator)
+       
+        ax.set_ylim(0,1)
+        ax.legend(loc='best', shadow=True, fontsize='small')
+        ax.autoscale_view()
+        
+        fig.set_size_inches(10,4)
+        fig.autofmt_xdate()
+        mplt.xlabel(xlabel)
+        mplt.ylabel('Percentuais')
+        
+        if (not somente_influenciadores):
+            mplt.title('Análise sentimental Comparativa - {0}'.format(Dimensao))
+        else:
+            mplt.title('Análise sentimental Comparativa (Apenas influenciadores) - {0}'.format(Dimensao))
+        
+        for i in ids:
+            termo = an.getTermo(i)
+            if (not termo):
+                continue
+            df = an.getStatsTwittersTimeSeries(i,resample = resample,somente_influenciadores=somente_influenciadores)
+            x  = df.index.values
+            y  = df[Dimensao].values
+            ax.plot(x,y,label='{0}({1})'.format(Dimensao,termo))
+        
+        mplt.legend()
+        if (not export):             
+            mplt.show()  
+        else:
+            path = utils.__Analises_Root_Path__
+            
+            if not somente_influenciadores:
+                file = path+"\\"+file
+#                file_csv = path+"\\"+"dados.csv"
+#                file_describe_csv = path+"\\"+"dados_describe.csv"
+            else:
+                file = path+"\\"+file
+#                file_csv = path+"\\"+"dados_influencia.csv"
+#                file_describe_csv = path+"\\"+"dados_describe_influencia.csv"
+            
+            utils.removeFile(file)
+            fig.savefig(file)
+#            df.to_csv(file_csv,sep='\t')
+#            df.describe().to_csv(file_describe_csv,sep='\t')
         
     except Exception as e:
         logging.error(traceback.format_exc())

@@ -186,20 +186,32 @@ def processWords(consulta_id):
 
 #Sumariza as informação de Estatisticas de palavras
 def processWordsStats(consulta_id):
-    cursor,_ = db.getConnection()
-    cursor.execute('exec [prcStatsWordCount] ?', consulta_id)
+    try:
+        cursor,_ = db.getConnection()
+        cursor.execute('exec [prcStatsWordCount] ?', consulta_id)
+    except:
+        print("Erro....")
     
 def processStatsSentimento(consulta_id):
-    cursor,_ = db.getConnection()
-    cursor.execute('exec [dbo].[prcGetStatsSentimento] ?', consulta_id)
+    try:
+        cursor,_ = db.getConnection()
+        cursor.execute('exec [dbo].[prcGetStatsSentimento] ?', consulta_id)
+    except:
+        print('Erro...')
 
 def processStatsSentimentoInfluencia(consulta_id):
-    cursor,_ = db.getConnection()
-    cursor.execute('exec [dbo].[prcGetStatsSentimentoInfluencia] ?', consulta_id)
+    try:
+        cursor,_ = db.getConnection()
+        cursor.execute('exec [dbo].[prcGetStatsSentimentoInfluencia] ?', consulta_id)
+    except:
+        print('Erro...')
 
 def processStatsRts(consulta_id):
-    cursor,_ = db.getConnection()
-    cursor.execute('exec [dbo].[prcGetStatsRetweetsDelay] ?', consulta_id)
+    try:
+        cursor,_ = db.getConnection()
+        cursor.execute('exec [dbo].[prcGetStatsRetweetsDelay] ?', consulta_id)
+    except:
+        print('Erro...')
 
     
 def getWords(consulta_id,sentimento=None):

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Resultados de análises Sentimental:</title>
+<title>Resultados de análises Sentimental</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 * {
@@ -59,36 +59,23 @@ table, th, td {
 <body style="font-family:Verdana;">
 
 <div style="background-color:#f1f1f1;padding:15px;">
-  <h1 id='titulo'>Cinque Terre</h1>
+  <h1 id='titulo'>Resultados de análise sentimental de candidatos Eleições 2018</h1>
 </div>
 
-<a href='../../index.html'>Voltar</a>
 <br>
 <div style="overflow:auto">
   <div class="main">
-    <div id='graficoSentimento'>
-		<h2>Gráfico de Sentimento em linha</h2>
-		<p>*Os valores aqui apresentados estão considerando TODAS as interações</p>
-        <img id = 'graficoSentimentoLine_img' src="" style="width:100%">
-	    <img id = 'graficoSentimentoBar_img' src="" style="width:100%">
-		<img id = 'graficoSentimentoPie_img' src="" style="width:100%">
-		<br>
-		<p>Dados de Origem</p>
-		<div id='table_graficoSentimento'></div>
-	</div>
+    <h2>Comparativos Globais</h2>
+    <img id = 'graficoSentimentoLineNegatividade' src="" style="width:100%">
+	<img id = 'graficoSentimentoLinePositividade' src="" style="width:100%">
 	<hr/>
-	<div id='graficoSentimentoLineInfluenciadores'>
-		<h2>Gráfico de Sentimento Linha - Apenas Influenciadores</h2>
-		<p>*Os valores aqui apresentados estão considerando apenas as postagens iniciais para cada termo</p>
-        <img id = 'graficoSentimentoLineInfluenciadores_img' src="" style="width:100%">
-        <img id = 'graficoSentimentoBarInfluenciadores_img' src="" style="width:100%">
-		<p>Dados de Origem</p>
-		<div id='table_graficoSentimentoInfluenciadores'></div>
-   </div>
-   
+	<h2>Detalhamento</h2>
+    <ul id="folderList">
+    </ul>
   </div>
 </div>
 
+<h3>Obs:Os dados aqui expostos são frutos de trabalho de cunho acadêmico para validação de modelos de Deep Learning e Processamento de linguagens naturais. Não tendo NENHUM objetivo político partidário.</h3>
 <div id='footer' style="background-color:#f1f1f1;text-align:center;padding:10px;margin-top:7px;font-size:12px;"> </div>
 </body>
 </html>

@@ -158,6 +158,11 @@ class MyStreamer(TwythonStreamer):
        
 
 if not (bloqueio):
+    consulta = consulta.strip()
+    
+    if len(consulta.split(' ')) >= 2:
+        consulta = '"' + consulta + '"'
+        
     print("Consulta:{0}".format(consulta))
     stream = MyStreamer(CONSUMER_KEY,CONSUMER_SECRET,ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
     stream.statuses.filter(track=consulta,lang=lang_query)
