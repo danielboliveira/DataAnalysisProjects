@@ -9,15 +9,23 @@ from twython import TwythonStreamer
 import os
 import pickle
 import yaml
+import logging
+
+def log(msg,verbose=True):
+    now = datetime.now()
+    logging.info('{0} - {1}'.format(now.strftime("%d/%m/%Y %H:%M:%S"),msg))
+    
+    if (verbose):
+        print(msg)
 
 config = ''
+
+now = datetime.now()
 try:
     config = sys.argv[1]
 except:
     config = 'crawler.config'
     
-print("Arquivo configuracao:{0}".format(config))    
-
 with open(config, 'r') as ymlfile:
     cfg = yaml.load(ymlfile)
 
@@ -31,6 +39,9 @@ query = cfg['crawler']['QUERY']
 lang_query = cfg['crawler']['TWITTER_LANG']
 inicio = cfg['crawler']['INICIO']
 fim = cfg['crawler']['FIM']
+logFile = cfg['crawler']['LOGFILE']
+
+logging.basicConfig(filename=logFile, level=logging.INFO)
 
 #Obtem qual termo a consultar
 queryList = query.split(';')
@@ -49,7 +60,7 @@ bloqueio = False
 try:
     dInicio = datetime.strptime(inicio, '%d/%m/%Y %H:%M')
     dFim = datetime.strptime(fim, '%d/%m/%Y %H:%M')
-    now = datetime.now()
+    
     
     if (now >= dFim):
         #ajusta as datas
@@ -65,17 +76,17 @@ except:
 with open(config, 'w') as yaml_file:
     yaml.dump(cfg, yaml_file, default_flow_style=False)
 
-
-print("Total a capturar:{0}".format(total))
-print("Path:{0}".format(path_results))
-print("CONSUMER_KEY:{0}".format(CONSUMER_KEY))
-print("CONSUMER_SECRET:{0}".format(CONSUMER_SECRET))
-print("ACCESS_TOKEN:{0}".format(ACCESS_TOKEN))
-print("ACCESS_TOKEN_SECRET:{0}".format(ACCESS_TOKEN_SECRET))
-print("query:{0}".format(query))
-print("lang:{0}".format(lang_query))
-print("Inicio:{0}".format(inicio))
-print("Fim:{0}".format(fim))
+log("Inicio")
+log("Total a capturar:{0}".format(total))
+log("Path:{0}".format(path_results))
+log("CONSUMER_KEY:{0}".format(CONSUMER_KEY))
+log("CONSUMER_SECRET:{0}".format(CONSUMER_SECRET))
+log("ACCESS_TOKEN:{0}".format(ACCESS_TOKEN))
+log("ACCESS_TOKEN_SECRET:{0}".format(ACCESS_TOKEN_SECRET))
+log("query:{0}".format(query))
+log("lang:{0}".format(lang_query))
+log("Inicio:{0}".format(inicio))
+log("Fim:{0}".format(fim))
 
 
 
@@ -146,14 +157,14 @@ class MyStreamer(TwythonStreamer):
         self.tweets += 1
                         
         if self.tweets >= total :
-            print("Salvando arquivo...")
+            log("Salvando arquivo")
             SafeFile(self.ts)
             self.tweets = 0
             self.ts.clear()
             self.disconnect()
             
     def on_error(self,status_code,data):
-        print(status_code,data)
+        log(status_code,data)
         self.disconnect()
        
 
@@ -163,11 +174,15 @@ if not (bloqueio):
     if len(consulta.split(' ')) >= 2:
         consulta = '"' + consulta + '"'
         
-    print("Consulta:{0}".format(consulta))
+    log("Consulta:{0}".format(consulta))
     stream = MyStreamer(CONSUMER_KEY,CONSUMER_SECRET,ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
+    
+    if len(consulta.split(' ')) >=2:
+        consulta = consulta.split(' ')[0]
+    
     stream.statuses.filter(track=consulta,lang=lang_query)
 
 
-print("Finalizado...")
+log("Finalizado")
 
 

@@ -7,6 +7,7 @@ import matplotlib.pyplot as mplt
 import matplotlib.dates as mdates
 from matplotlib.dates import MONDAY
 import datetime
+from dateutil.relativedelta import relativedelta
 import bs4
 import os
 import pandas as pd
@@ -166,6 +167,14 @@ def genereateHtmlOutput(path,consulta_id):
 #fig.savefig("output.png")        
 #plt = df.plot(figsize=(20,5),kind='line',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')        
 
+def __podar_dataframe__(df):
+    #poda o dataframe para o mês atual
+    hoje = datetime.datetime.now()
+    inicio = datetime.datetime(hoje.year,hoje.month,1)
+            
+    if len(df.loc[df.index < inicio]):
+       df.drop(df[df.index < inicio].index, inplace=True)
+
 def generateStatsSentimentoLineGraphs(consulta_id,somente_influenciadores=False,resample='D',export=False): 
     try:    
         termo = an.getTermo(consulta_id)
@@ -176,22 +185,23 @@ def generateStatsSentimentoLineGraphs(consulta_id,somente_influenciadores=False,
         df = an.getStatsTwittersTimeSeries(consulta_id,resample = resample,somente_influenciadores=somente_influenciadores)
         
         
-        xs = df.index.values
-        ypos = df['%Positivos'].values
-        yneg = df['%Negativos'].values
-        yneu = df['%Neutros'].values
-        
         if (resample.lower() == 'm'): #xticks Mês
             major_locator = mdates.MonthLocator(range(1, 13))
             minor_locator = mdates.WeekdayLocator(MONDAY) 
             major_formatter = mdates.DateFormatter('%b %y')
             xlabel = 'Mes(es)'
         else:
+            __podar_dataframe__(df)
             major_locator = mdates.DayLocator() 
             minor_locator = mdates.DayLocator()
             major_formatter = mdates.DateFormatter('%d %b')
             xlabel = 'Dia(s)'
-        
+
+        xs = df.index.values
+        ypos = df['%Positivos'].values
+        yneg = df['%Negativos'].values
+        yneu = df['%Neutros'].values        
+
         mplt.clf()    
         fig, ax = mplt.subplots()
         ax.plot(xs,ypos,'b',label='% Positivos')
@@ -284,6 +294,10 @@ def generateStatsSentimentoLineCompareGraphs(ids,Dimensao,somente_influenciadore
             if (not termo):
                 continue
             df = an.getStatsTwittersTimeSeries(i,resample = resample,somente_influenciadores=somente_influenciadores)
+
+            if (resample.lower() == 'd'):
+                 __podar_dataframe__(df)
+
             x  = df.index.values
             y  = df[Dimensao].values
             ax.plot(x,y,label='{0}({1})'.format(Dimensao,termo))
@@ -322,13 +336,31 @@ def generateStatsSentimentoBarGraphs(consulta_id,somente_influenciadores=False,r
         df = an.getStatsTwittersTimeSeries(consulta_id,resample = resample,somente_influenciadores=somente_influenciadores)
         
         
+        
+
+        fig, ax = mplt.subplots()
+        fig.set_size_inches(10,4)
+        
+        
+        
+      
+        
+        if (resample.lower() == 'm'): #xticks Mês
+            major_locator = mdates.MonthLocator(range(1, 13))
+            minor_locator = mdates.WeekdayLocator(MONDAY) 
+            major_formatter = mdates.DateFormatter('%b %y')
+            xlabel = 'Mes(es)'
+        else:
+            __podar_dataframe__(df)
+            major_locator = mdates.DayLocator() 
+            minor_locator = mdates.DayLocator()
+            major_formatter = mdates.DateFormatter('%d %b')
+            xlabel = 'Dia(s)'
+        
         xs = df.index.values
         ypos = df['%Positivos'].values
         yneg = df['%Negativos'].values
         yneu = df['%Neutros'].values
-
-        fig, ax = mplt.subplots()
-        fig.set_size_inches(10,4)
         
         ppos = mplt.bar(xs, ypos,color='b')
         pneu = mplt.bar(xs, yneu,bottom=ypos,color='gray')
@@ -338,17 +370,6 @@ def generateStatsSentimentoBarGraphs(consulta_id,somente_influenciadores=False,r
         mplt.yticks(fontsize=12)
         mplt.ylabel('Percentuais', fontsize=12)
         mplt.legend((ppos[0],pneu[0],pneg[0]), ('Positivos', 'Negativos','Neutros'))
-        
-        if (resample.lower() == 'm'): #xticks Mês
-            major_locator = mdates.MonthLocator(range(1, 13))
-            minor_locator = mdates.WeekdayLocator(MONDAY) 
-            major_formatter = mdates.DateFormatter('%b %y')
-            xlabel = 'Mes(es)'
-        else:
-            major_locator = mdates.DayLocator() 
-            minor_locator = mdates.DayLocator()
-            major_formatter = mdates.DateFormatter('%d %b')
-            xlabel = 'Dia(s)'
         
         mplt.xlabel(xlabel, fontsize=12)
         ax.xaxis.set_major_locator(major_locator)
@@ -416,8 +437,6 @@ def generateStatsSentimentoGraphs(consulta_id,time_series=False,resample='H',xti
         else:
             plt = df.plot(figsize=(10,6),kind='bar',x=df.index,rot=45,y=['%Positivos','%Neutros','%Negativos'],stacked=True,color=['b', 'lightgray', 'r'],title = 'Variação de sentimento({0})'.format(termo.upper()))    
             
-            
-
 
         fig = plt.get_figure()
         fig.savefig(file_graph_2)
