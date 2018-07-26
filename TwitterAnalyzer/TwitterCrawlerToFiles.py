@@ -177,8 +177,8 @@ if not (bloqueio):
     log("Consulta:{0}".format(consulta))
     stream = MyStreamer(CONSUMER_KEY,CONSUMER_SECRET,ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
     
-    if len(consulta.split(' ')) >=2:
-        consulta = consulta.split(' ')[0]
+  #  if len(consulta.split(' ')) >=2:
+  #     consulta = consulta.split(' ')[0]
     
     stream.statuses.filter(track=consulta,lang=lang_query)
 

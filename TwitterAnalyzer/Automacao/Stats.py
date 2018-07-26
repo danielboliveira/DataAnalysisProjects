@@ -203,6 +203,7 @@ def generateStatsSentimentoLineGraphs(consulta_id,somente_influenciadores=False,
         yneu = df['%Neutros'].values        
 
         mplt.clf()    
+        mplt.xticks(rotation=90)
         fig, ax = mplt.subplots()
         ax.plot(xs,ypos,'b',label='% Positivos')
         ax.plot(xs,yneg,'r',label='% Negativos')
@@ -269,7 +270,8 @@ def generateStatsSentimentoLineCompareGraphs(ids,Dimensao,somente_influenciadore
             major_formatter = mdates.DateFormatter('%d %b')
             xlabel = 'Dia(s)'
         
-        mplt.clf() 
+        mplt.clf()
+        mplt.xticks(rotation=90)
         fig, ax = mplt.subplots()
         ax.xaxis.set_major_locator(major_locator)
         ax.xaxis.set_major_formatter(major_formatter)
@@ -280,7 +282,7 @@ def generateStatsSentimentoLineCompareGraphs(ids,Dimensao,somente_influenciadore
         ax.autoscale_view()
         
         fig.set_size_inches(10,4)
-        fig.autofmt_xdate()
+ 
         mplt.xlabel(xlabel)
         mplt.ylabel('Percentuais')
         
@@ -303,7 +305,8 @@ def generateStatsSentimentoLineCompareGraphs(ids,Dimensao,somente_influenciadore
             ax.plot(x,y,label='{0}({1})'.format(Dimensao,termo))
         
         mplt.legend()
-        if (not export):             
+        fig.autofmt_xdate()
+        if (not export):
             mplt.show()  
         else:
             path = utils.__Analises_Root_Path__
@@ -339,6 +342,7 @@ def generateStatsSentimentoBarGraphs(consulta_id,somente_influenciadores=False,r
         
 
         fig, ax = mplt.subplots()
+        mplt.xticks(rotation=90)
         fig.set_size_inches(10,4)
         
         
