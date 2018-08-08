@@ -168,10 +168,12 @@ def genereateHtmlOutput(path,consulta_id):
 #plt = df.plot(figsize=(20,5),kind='line',x=['Horario'],y=['%Positivos','%Neutros','%Negativos'],color=['b', 'lightgray', 'r'],title = 'Variação de sentimento')        
 
 def __podar_dataframe__(df):
+
+    pass
     #poda o dataframe para o mês atual
     hoje = datetime.datetime.now()
     inicio = datetime.datetime(hoje.year,hoje.month,1)
-            
+#            
     if len(df.loc[df.index < inicio]):
        df.drop(df[df.index < inicio].index, inplace=True)
 
@@ -337,16 +339,10 @@ def generateStatsSentimentoBarGraphs(consulta_id,somente_influenciadores=False,r
             return
         
         df = an.getStatsTwittersTimeSeries(consulta_id,resample = resample,somente_influenciadores=somente_influenciadores)
-        
-        
-        
 
         fig, ax = mplt.subplots()
         mplt.xticks(rotation=90)
         fig.set_size_inches(10,4)
-        
-        
-        
       
         
         if (resample.lower() == 'm'): #xticks Mês
@@ -486,8 +482,9 @@ def generateStatsSentimentoPieGraph(consulta_id):
         if (not termo):
             return
         
-        df = an.getStatsTwitters(consulta_id)
-        
+#        df = an.getStatsTwitters(consulta_id)
+        df = an.getStatsTwittersTimeSeries(consulta_id,resample = 'D',somente_influenciadores = False)
+        __podar_dataframe__(df)
         path = utils.getAnalisesPath(consulta_id)
         
         file_graph_1 = path+"\\"+"sentimentos_pie.png"

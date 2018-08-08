@@ -11,7 +11,12 @@ from SqlServer import Analysis
 from SqlServer import dbHelper
 import random
 from Automacao import Stats as st
+import warnings
 #from nltk.tokenize import word_tokenize
+
+ # Filter annoying Cython warnings that serve no good purpose.
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 ftp_host = '191.232.48.84'
 ftp_user = 'daniel.oliveira'
@@ -218,7 +223,8 @@ for id in ids:
 #
 #
 print('Gerando dados de saída') 
-for id in ids:
+#for id in ids:
+for id in [10,11]:
     print('\tConsulta ID:{0}'.format(id))
     st.generateAllOutPuts(id)
 

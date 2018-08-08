@@ -51,10 +51,10 @@ def getStatsTwittersTimeSeries(consulta_id,resample,somente_influenciadores = Fa
 #    df['%Neutros'] = cols['Neutros']/cols.sum(axis=1)
     
     dfh = df.resample(resample).sum().bfill()
-    cols = dfh.loc[: , "Negativos":"Positivos"]
-    dfh['%Negativos'] = cols['Negativos']/cols.sum(axis=1)
-    dfh['%Positivos'] = cols['Positivos']/cols.sum(axis=1)
-    dfh['%Neutros'] = cols['Neutros']/cols.sum(axis=1)
+#    cols = dfh.loc[: , "Negativos":"Positivos"]
+    dfh['%Negativos'] = dfh['Negativos']/dfh.sum(axis=1)
+    dfh['%Positivos'] = dfh['Positivos']/dfh.sum(axis=1)
+    dfh['%Neutros'] = dfh['Neutros']/dfh.sum(axis=1)
     
     return dfh
     
@@ -78,19 +78,21 @@ def getStatsTwitters(consulta_id,somente_influenciadores = False):
     
     for row in consulta:
         index.append(row.hr_index)
-        data.append(row.dt_stats)
-        horario.append(row.hr_stats)
+#        data.append(row.dt_stats)
+#        horario.append(row.hr_stats)
         positivo.append(row.qt_positivo)
         negativo.append(row.qt_negativo)
         neutro.append(row.qt_neutro)
     
-    d = {'Data':data,'Horario':horario,'Positivos':positivo,'Negativos':negativo,'Neutros':neutro}
+    d = {'Positivos':positivo,'Negativos':negativo,'Neutros':neutro}
     df = pd.DataFrame(d,index=index)
     
-    cols = df.loc[: , "Negativos":"Positivos"]
-    df['%Negativos'] = cols['Negativos']/cols.sum(axis=1)
-    df['%Positivos'] = cols['Positivos']/cols.sum(axis=1)
-    df['%Neutros'] = cols['Neutros']/cols.sum(axis=1)
+#    cols = df.loc[: , "Negativos":"Positivos"]
+    dfh = df.resample('D').sum().bfill()
+    
+    dfh['%Negativos'] = dfh['Negativos']/df.sum(axis=1)
+    dfh['%Positivos'] = dfh['Positivos']/df.sum(axis=1)
+    dfh['%Neutros'] = dfh['Neutros']/ df.sum(axis=1)
     
     return df
     
