@@ -223,8 +223,7 @@ for id in ids:
 #
 #
 print('Gerando dados de saída') 
-#for id in ids:
-for id in [10,11]:
+for id in ids:
     print('\tConsulta ID:{0}'.format(id))
     st.generateAllOutPuts(id)
 

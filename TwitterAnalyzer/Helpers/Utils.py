@@ -26,6 +26,7 @@ def getAnalisesPath(consulta_id,horario=False):
        path = __Analises_Root_Path__ +  str(consulta_id)
     else:
        path = __Analises_Root_Path__ +  termo.lower()
+       path = path.replace('ê','e')
        
     makeDir(path)
     

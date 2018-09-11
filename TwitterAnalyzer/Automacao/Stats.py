@@ -340,6 +340,7 @@ def generateStatsSentimentoBarGraphs(consulta_id,somente_influenciadores=False,r
         
         df = an.getStatsTwittersTimeSeries(consulta_id,resample = resample,somente_influenciadores=somente_influenciadores)
 
+        mplt.clf() 
         fig, ax = mplt.subplots()
         mplt.xticks(rotation=90)
         fig.set_size_inches(10,4)
