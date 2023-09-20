@@ -61,10 +61,10 @@ class MyStreamer(TwythonStreamer):
         
 
 
-CONSUMER_KEY = "nDc5j9q7vhWi0krocmnM28vXE"
-CONSUMER_SECRET = "5KscghsdSOX3BYsVjdME0hsRAdMWHiblrvVcc9cApCKfiO8IQI"
-ACCESS_TOKEN = "52572176-zn9okwAeO0iAX1ZEW6E9YaE8iAn8IVdDYqyXN5lYb"
-ACCESS_TOKEN_SECRET = "EmQuHiuTncRSGy7Wvh5Q0InseGWm45TrxGcH4Q6pLad87"
+CONSUMER_KEY = ""
+CONSUMER_SECRET = ""
+ACCESS_TOKEN = ""
+ACCESS_TOKEN_SECRET = ""
 
 stream = MyStreamer(CONSUMER_KEY,CONSUMER_SECRET,ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
 stream.statuses.filter(track='eleições,lula,dilma,bolsonaro,jair bolsonaro,ciro gomes,boulos,manuela d\'avila,manuela davila,stf,sérgio moro,alckmin,henrique meirelles,petrolão,mensalão',lang="pt")
