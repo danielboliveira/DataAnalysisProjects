@@ -8,9 +8,9 @@ import Helpers.Utils
 import spacy
 import re
 
-ftp_host='191.237.254.23'
-ftp_user='admin'
-ftp_passwd='elrond'
+ftp_host=''
+ftp_user=''
+ftp_passwd=''
 path_local = './crawler_results_not_process/'
 path_local_processed = './crawler_results_processed/'
 nlp = spacy.load('pt_core_news_sm')
